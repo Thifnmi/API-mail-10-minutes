@@ -1,0 +1,222 @@
+# GIT & GitFlow
+# Git là phần mềm quản lý mã nguồn phân tán được phát triển bởi Linus Torvalds
+# vào năm 2005, ban đầu dành cho việc phát triển nhân Linux.
+# Hiện nay, Git trở thành một trong các phần mềm quản lý mã nguồn phổ biến nhất
+# Git là phần mềm mã nguồn mở được phân phối theo giấy phép công cộng GPL2
+# Git cung cấp cho mỗi lập trình viên kho lưu trữ (repository) riêng
+# chứa toàn bộ lịch sử thay đổi.
+# Git ưu việt hơn vì có khả năng tách nhánh (branch), hỗ trợ rất tốt cho
+# teamwork, những việc như phân chia task,
+# tổng hợp code trở nên dễ dàng hơn nhiều.
+
+# Có thể hiểu Git Flow là một model để thiết kế các dòng công việc của Git.
+# Nó định nghĩa một mô hình phân nhánh nghiệm ngặt, phù hợp lý tưởng với các
+# dự án có chu kỳ phát hành theo lịch trình. Thế nên Git Flow luôn được áp dụng
+# rộng rãi ở các doanh nghiệp, vì quy trình chặt chẽ của nó.
+# nên dựa vào một model như Git Flow để đảm bảo được tính nhất quán và tăng
+# hiệu suất công việc. Git Flow giúp ta có những quy trình cụ thể
+# giống như những tập quy tắc trong công việc để mọi người thực hiện theo.
+# Nhờ Git Flow mà khi sử dụng Git ta sẽ tránh được nhiều hệ quả như:
+# + tên nhánh đặt tên lung tung không theo quy tắc cụ thể
+# + mất thời gian trong việc tìm tên nhánh
+# + giải quyết các conflict khi merge nhánh
+# Hơn thế nữa Git Flow cung cấp các thao tác mở rộng của Git
+# nhằm quản lí các dòng công việc đó.
+
+# các nhanh tính năng
+# 1. Master Branch
+# Là nhánh mặc định được tạo khi tạo mới một repository bằng Git.
+# Đa số những người mới dùng Git thường có xu hướng commit và push code
+# lên master branch. Nhưng đối với model Git Flow, ta không làm như thế,
+# nhánh master đảm nhiệm vai trò là một nhánh hoàn chỉnh, chỉ nên thực hiện
+# merge từ các nhánh khác. Nói khác hơn master branch này là
+# một tập hợp code hoàn chỉnh, không hề có lỗi được merge từ các nhánh con
+# và có thể release được ngay
+# 2. Develop branch
+# Nếu như master branch là một nhánh hoàn chỉnh, develop branch này đóng
+# vai trò như một nhánh tích hợp nhiều tính năng đã và đang được phát triển
+# và đương nhiên sẽ có thể tồn động nhiều lỗi ở nhánh này. Dựa vào tính chất
+# tập trung của develop branch ta có thể gom một nhóm tính năng đã được
+# phát triển trong một khoảng thời gian nhất định để tạo ra
+# một bản release candidate (RC).
+# Khác với vòng đời phát triển phần mềm, bản realease candidate này chỉ để
+# tập trung phát hiện và sửa lỗi để chuẩn bị cho việc chuyển sang giai đoạn
+# phát hành. Đây cũng chính là điểm mạnh của Git Flow giúp các dự án
+# có thể phát triển cũng như cập nhật theo lịch trình.
+# 3. Feature branch
+# Ý tưởng chính của Git Flow dành cho nhánh này là việc khi công ty
+# muốn phát triển một tính năng mới cho dự án, lập trình viên sẽ phải
+# code trên nhánh riêng của mình dựa trên một base branch (develop branch).
+# Việc tạo một nhánh riêng cho mỗi lập trình viên sẽ tách từ develop branch,
+# tạo nên sự độc lập cho feature branch. Việc tách nhánh này sẽ không làm ảnh
+# hưởng đến code chính, giúp cho việc code cũng như test được dễ dàng hơn.
+# Thêm vào đó, điểm mạnh của Git Flow là tính linh hoạt nhất là trong teamwork.
+# Trong trường hợp, phát triển một tính năng lớn, đòi hỏi phải có
+# nhiều lập trình viên cùng làm một lúc. Đúng theo quy chuẩn của Git Flow,
+# ta cũng sẽ phải tạo feature branch (big-feature) tách từ develop branch,
+# sau đó ta sẽ chia tiếp nhiều nhánh nhỏ (sub-feature) và
+# tách từ nhánh big-feature. Từ đó ta sẽ luôn đảm bảo được tính độc lập của
+# từng nhánh.Ngoài ra thử tưởng tượng nếu ta chỉ sử dụng duy nhất
+# develop branch và nhiều người cùng code trên nhánh đó.
+# Tất nhiên khi commit và push code lên, khả năng cao code sẽ dễ bị conflict
+# với các lập trình viên khác. Chẳng lẽ chúng ta phải giải quyết conflict
+# mỗi khi chúng ta push code lên? Hơn thế nữa, nếu như không tách nhánh,
+# sẽ gây khó khăn trong việc review code cũng như quản lí, cụ thể ta sẽ
+# không biết để tính năng đó ta đã có những commit gì.
+# Thêm vào đó một khái niệm mới trong model Git Flow là Pull Request (PR).
+# Sau khi code xong ở feature branch, lập trình viên sẽ phải tạo một PR
+# để merge feature branch vào develop branch. Mục đích chính của việc tạo
+# Pull Request này là dễ dàng giúp cho cả team review lại code,
+# kiểm tra code của lập trình viên có những sai sót, đạt hiệu quả cao hay chưa
+# hoặc còn những vấn đề cần bổ sung thêm. Qua đó việc tạo Pull Request
+# giúp cho code của lập trình viên được kiểm duyệt thêm một bước trước khi thực
+# hiện test.
+# 4. Release branch
+# Đúng như tên gọi của nó, release branch dùng để chuẩn bị cho release
+# bản production mới trong thời gian định kì. Thời điểm thực hiện release,
+# ta phải xét xem develop branch phải phản ánh được trạng thái mong muốn cho
+# việc release mới.
+# Mục đích chính của nhánh release này là test lại các tính năng đã code ở
+# feature branch một lần nữa để đảm bảo tính năng đó chạy ổn định và có lỗi
+# hay không, vì khi trên release branch này gồm có nhiều tính năng với nhau.
+# Ngoài ra trong trường hợp có lỗi, hoặc có các vấn đề mới cần phát sinh
+# cần bổ sung thêm, ta lại tiếp tục checkout thêm một nhánh mới
+# (release candidate bug/feature) từ release branch này để giải.
+# Sau khi thực hiện xong sẽ merge vào release branch đó để tiếp tục
+# công việc release.
+# 5. Hotfix branch
+# Giống như release branch, hotfix branch được sử dụng để chuẩn bị cho việc
+# release production mới. Trên thực tế nhánh này được sử dụng khi có bug
+# nghiêm trọng tồn tại trên production, cần phải sửa ngay.
+# Khi đó một hotfix branch sẽ được checkout từ nhánh master để tiến hành sửa.
+# Sau khi sửa xong sẽ merge vào master branch và phải merge vào
+# develop branch, vì theo nguyên tắc develop branch không nên có những lỗi
+# đã có từ trước, để đảm bảo các công việc về sau sẽ không có lỗi đó nữa
+# trên dự án.
+# Gitignore là file có tên là .gitignore do Git quy định.
+# Nhiệm vụ của nó là liệt kê những file mà mình không mong muốn cho vào git
+# hoặc hiểu nôm na là Git sẽ bỏ qua những file đó đi.
+# Gitignore hiện nay rất quan trọng trong team work,
+# các bạn nên áp dụng ngay vào quy trình làm việc của team.
+
+# RESTful API
+# RESTful API là một tiêu chuẩn dùng trong việc thiết kế API cho các ứng dụng
+# web (thiết kế Web services) để tiện cho việc quản lý các resource.
+# Nó chú trọng vào tài nguyên hệ thống (tệp văn bản, ảnh, âm thanh, video,
+# hoặc dữ liệu động…), bao gồm các trạng thái tài nguyên được định dạng
+# và được truyền tải qua HTTP.
+# API (Application Programming Interface) là một tập các quy tắc và cơ chế
+# mà theo đó, một ứng dụng hay một thành phần sẽ tương tác với một ứng dụng
+# hay thành phần khác. API có thể trả về dữ liệu mà bạn cần cho ứng dụng của
+# mình ở những kiểu dữ liệu phổ biến như JSON hay XML.
+
+# REST (REpresentational State Transfer) là một dạng chuyển đổi
+# cấu trúc dữ liệu, một kiểu kiến trúc để viết API.
+# Nó sử dụng phương thức HTTP đơn giản để tạo cho giao tiếp giữa các máy.
+# Vì vậy, thay vì sử dụng một URL cho việc xử lý một số thông tin người dùng,
+# REST gửi một yêu cầu HTTP như GET, POST, DELETE, vv đến
+# một URL để xử lý dữ liệu.
+
+# RESTful API là một tiêu chuẩn dùng trong việc thiết kế các API cho
+# các ứng dụng web để quản lý các resource. RESTful là một trong những
+# kiểu thiết kế API được sử dụng phổ biến ngày nay để cho các ứng dụng
+# (web, mobile…) khác nhau giao tiếp với nhau.
+
+# Chức năng quan trọng nhất của REST là quy định cách sử dụng các HTTP
+# method (như GET, POST, PUT, DELETE…) và cách định dạng các URL
+# cho ứng dụng web để quản các resource. RESTful không quy định
+# logic code ứng dụng và không giới hạn bởi ngôn ngữ lập trình ứng dụng,
+# bất kỳ ngôn ngữ hoặc framework nào cũng có thể sử dụng
+# để thiết kế một RESTful API.
+# REST hoạt động chủ yếu dựa vào giao thức HTTP. Các hoạt động cơ bản nêu trên
+# sẽ sử dụng những phương thức HTTP riêng.
+
+# GET (SELECT): Trả về một Resource hoặc một danh sách Resource.
+# POST (CREATE): Tạo mới một Resource.
+# PUT (UPDATE): Cập nhật thông tin cho Resource.
+# DELETE (DELETE): Xoá một Resource.
+
+# Authentication và dữ liệu trả về
+# RESTful API không sử dụng session và cookie,
+# nó sử dụng một access_token với mỗi request.
+
+# Status code
+# Khi chúng ta request một API nào đó thường thì
+# sẽ có vài status code để nhận biết sau:
+
+# 200 OK – Trả về thành công cho những phương thức GET, PUT, PATCH hoặc DELETE.
+# 201 Created – Trả về khi một Resouce vừa được tạo thành công.
+# 204 No Content – Trả về khi Resource xoá thành công.
+# 304 Not Modified – Client có thể sử dụng dữ liệu cache.
+# 400 Bad Request – Request không hợp lệ
+# 401 Unauthorized – Request cần có auth.
+# 403 Forbidden – bị từ chối không cho phép.
+# 404 Not Found – Không tìm thấy resource từ URI
+# 405 Method Not Allowed – Phương thức không cho phép với user hiện tại.
+# 410 Gone – Resource không còn tồn tại, Version cũ đã không còn hỗ trợ.
+# 415 Unsupported Media Type – Không hỗ trợ kiểu Resource này.
+# 422 Unprocessable Entity – Dữ liệu không được xác thực
+# 429 Too Many Requests – Request bị từ chối do bị giới hạn
+
+# Một số ưu điểm chính khi sử dụng RESTFUL API là:
+
+# Giúp cho ứng dụng rõ ràng hơn
+# REST URL đại diện cho resource chứ không phải hành động
+# Dữ liệu được trả về với nhiều định dạng khác nhau như: xml, html, json….
+# Code đơn giản và ngắn gọn
+# REST chú trọng vào tài nguyên của hệ thống
+
+
+# FLASK
+# Flask là một framework web của Python, còn được coi là một microframework
+# bởi nó không yêu cầu các công cụ hoặc thư viện cụ thể.
+# Được phát triển bởi Armin Ronacher, người dẫn đầu một nhóm
+# những người đam mê Python quốc tế có tên là Poocco.
+# Flask phát triển dựa trên bộ công cụ Werkzeug WSGI và
+# công cụ mẫu Jinja2.
+# Flask là một microframework bởi nó không yêu cầu các công cụ hoặc
+# thư viện cụ thể, điều này mang đến cả ưu điểm và khuyết điểm cho người
+# sử dụng. Ưu điểm của Flask là Framework nhẹ, ít phụ thuộc vào các cập nhật
+# và dễ tìm kiếm các lỗi bảo mật. Nhược điểm là đôi khi phải tự thêm các
+# danh sách phụ thuộc bằng việc thêm các plugin.
+# Trong Flask, các phụ phuộc đó là Werkzeug WSGI và Jinja2.
+# WSGI
+# Web Server Gateway Interface (Giao diện cổng vào máy chủ Web) được sử dụng
+# như một tiêu chuẩn để phát triển ứng dụng web Python. WSGI mang đặc điểm
+# kỹ thuật giao diện chung giữa máy chủ web và ứng dụng web.
+# Werkzeug
+# Là một bộ công cụ WSGI thực hiện các yêu cầu, phản hồi đối tượng
+# và các chức năng tiện ích. Điều này cho phép xây dựng một web framework
+# trên đó. Flask sử dụng Werkzeug làm một trong những cơ sở xây dựng web của nó
+# Jinja2
+# Là một công cụ mẫu phổ biến cho Python. Một hệ thống mẫu web kết hợp một mẫu
+# với một nguồn dữ liệu cụ thể để hiển thị một trang web động
+
+
+# SQLAlchemy
+# SQLAlchemy là một bộ công cụ SQL mã nguồn mở và ORM sử dụng trong ngôn ngữ
+# lập trình Python, giúp hỗ trợ việc quản lý và thao tác với cơ sở dữ liệu.
+# SQLAlchemy cung cấp cho người dùng một ORM
+# sử dụng mô hình thiết kế Data Mapper.
+
+
+# ORM
+# ORM (Object Relational Mapping), là một kỹ thuật/cơ chế lập trình thực hiện
+# ánh xạ CSDL sang các đối tượng trong các ngôn ngữ lập trình hướng đối tượng
+# như Java, C# …(các table tương ứng các class, mối ràng buộc giữa các table
+# tương ứng quan hệ giữa các class ‘has a’ , ‘is a’).
+# Việc sử dụng ORM cho phép lập trình viên thao tác với database
+# 1 cách hoàn toàn tự nhiên, dễ hiểu thông qua các đối tượng.
+# Lập trình viên không cần tới loại database, kiểu dữ liệu trong database…
+# Ưu điểm
+# OOP: ORM giúp lập trình viên tập trung vào lập trình hướng đối tượng
+# Tính độc lập: Làm việc được với nhiều loại database,
+# nhiều kiểu dữ liệu khác nhau. Dễ dàng thay đổi loại database hơn.
+# Các câu lệnh SQL không phụ thuộc vào loại database.
+# Đơn giản, dễ sử dụng: Hỗ trợ HSQL, cung cấp nhiều nhiều API truy vấn.
+# Năng suất hơn: viết code ít hơn, dễ hiểu hơn. Phù hợp các case CRUD
+# Khả năng sử dụng lại code.
+# 2.2. Nhược điểm
+# Khả năng truy vấn bị hạn chế, nhiều trường hợp ta vẫn phải dùng
+# native SQL để truy vấn database.
+# Khó tối ưu câu lệnh SQL (do câu lệnh SQL được ORM tự động sinh ra).
