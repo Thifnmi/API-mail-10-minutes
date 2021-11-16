@@ -28,4 +28,4 @@ if __name__ == "__main__":
         port = int(sys.argv[1])
     except (TypeError, IndexError):
         port = 8080
-    app.run(debug=True, port=port)
+    app.run(debug=True, host='0.0.0.0', port=port)
