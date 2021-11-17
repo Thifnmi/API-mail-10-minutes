@@ -47,6 +47,7 @@ public/admin/crm/
 .vagrant
 venv
 Vagrantfile
+__pycache__
 
 #-------------------------
 # Temporary Files
