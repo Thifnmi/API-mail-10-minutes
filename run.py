@@ -90,13 +90,14 @@ def generator(char_num=3, num=5):
 
 @app.route("/mailbox", methods=["GET"])
 def mailbox():
-    mail_id = request.args.get('mail_id')
-    if MailBox.query.filter_by(mail_id=mail_id).all():
-        res = MailBox.query.filter_by(mail_id=mail_id).all()
-        # for re in res:
-        #     print((re))
+    if request.args.get('mail_id'):
+        mail_id = request.args.get('mail_id')
+        if MailBox.query.filter_by(mail_id=mail_id).all():
+            res = MailBox.query.filter_by(mail_id=mail_id).all()
+        else:
+            res = "Email not exist"
     else:
-        res = "Email not exist"
+        res = "url not found, try with /mailbox?mail_id='your email id'"
     return str(res)
 
 

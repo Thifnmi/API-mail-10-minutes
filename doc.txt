@@ -204,10 +204,38 @@
 # ORM (Object Relational Mapping), là một kỹ thuật/cơ chế lập trình thực hiện
 # ánh xạ CSDL sang các đối tượng trong các ngôn ngữ lập trình hướng đối tượng
 # như Java, C# …(các table tương ứng các class, mối ràng buộc giữa các table
-# tương ứng quan hệ giữa các class ‘has a’ , ‘is a’).
+# tương ứng quan hệ giữa các class ‘has a’ , ‘is a’). Hiểu đơn giản thì ORM
+# là kỹ thuật lập trình giúp biểu diễn các dòng dữ liệu trong db bằng đối tượng
+# từ đó giúp các thao tác, xử lý data giống như với object(mỗi record trong
+# database sẽ là 1 object)
+
+# có 2 kiểu design pattern ORM:
+# + active record mô hình thiết kế ORM mà trong đó
+# mỗi bảng trong cơ sở dữ liệu (table in database) được gói gọn trong một model
+# Do vậy, mỗi object thuộc model sẽ được gắn với một dòng (record) trong bảng.
+# Với Active Record, ở trong model, người dùng sẽ không cần phải ghi rõ những
+# properties của model đó hay sự liên hệ của những properties ấy đến database,
+# mà object sẽ tự động biết được chúng bằng cách nhìn vào database schema.
+# Ngoài ra, các ORM sử dụng Active Record thường có sẵn những CRUD method
+# như save(), create(),… thuận tiện cho việc tạo object.
+
+# + Data Mapper thay vì kết nối trực tiếp mỗi object với một record trong
+# database, ORM sẽ đóng vai trò như một lớp (layer) có chức năng tách biệt
+# cũng như vận chuyển dữ liệu hai chiều (bidirectional transfers of data)
+# giữa cơ sở dữ liệu và ứng dụng (application). Điều này nghĩa là các objects
+# ở application sẽ không có thông tin gì về database hay những thuộc tính của
+# các models. Các object được tạo ra sẽ không
+# biết đến sự tồn tại của database và ngược lại.
+
+# Sự khác biệt lớn nhất giữa hai mô hình thiết kế trên chính là trong khi
+# mô hình Active Record hướng tới mục đích xoá đi khoảng cách giữa
+# application và database thì mô hình Data Mapper có vai trò giúp người sử dụng
+# phân tách rõ ràng hơn hai bộ phận trên.
+
 # Việc sử dụng ORM cho phép lập trình viên thao tác với database
 # 1 cách hoàn toàn tự nhiên, dễ hiểu thông qua các đối tượng.
-# Lập trình viên không cần tới loại database, kiểu dữ liệu trong database…
+# Lập trình viên không cần tới loại database, kiểu dữ liệu trong database
+
 # Ưu điểm
 # OOP: ORM giúp lập trình viên tập trung vào lập trình hướng đối tượng
 # Tính độc lập: Làm việc được với nhiều loại database,
@@ -216,7 +244,8 @@
 # Đơn giản, dễ sử dụng: Hỗ trợ HSQL, cung cấp nhiều nhiều API truy vấn.
 # Năng suất hơn: viết code ít hơn, dễ hiểu hơn. Phù hợp các case CRUD
 # Khả năng sử dụng lại code.
-# 2.2. Nhược điểm
+
+# Nhược điểm
 # Khả năng truy vấn bị hạn chế, nhiều trường hợp ta vẫn phải dùng
 # native SQL để truy vấn database.
 # Khó tối ưu câu lệnh SQL (do câu lệnh SQL được ORM tự động sinh ra).
