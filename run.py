@@ -1,14 +1,26 @@
-from flask import Flask, make_response, request
+from flask import Flask, make_response, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import sys
 import string
 import random
+from functools import wraps
+import jwt
+from werkzeug.security import generate_password_hash, check_password_hash
+import datetime
 
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = 'f0e1e037be55b9926d51d2dc20481b46'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+
+
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50))
+    password = db.Column(db.String(80))
+    admin = db.Column(db.Boolean)
 
 
 class Mail(db.Model):
@@ -33,11 +45,73 @@ class MailBox(db.Model):
             self.email_from, self.title, self.content)
 
 
-db.create_all()
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 401
+
+        try:
+            data = jwt.decode(
+                token, app.config['SECRET_KEY'], algorithms="HS256")
+            current_user = User.query.filter_by(
+                id=data['id']).first()
+
+        except Exception:
+            return jsonify({'message': 'Token is invalid!'}), 401
+
+        return f(current_user, *args, **kwargs)
+
+    return decorated
+
+
+@app.route('/manager/login')
+def login():
+    auth = request.authorization
+
+    if not auth or not auth.username or not auth.password:
+        return make_response('Could not verify', 401, {'WWW-Authenticate': '\
+            Basic realm="Login required!"'})
+
+    user = User.query.filter_by(name=auth.username).first()
+
+    if not user:
+        return make_response('Could not verify', 401, {'WWW-Authenticate': '\
+            Basic realm="Login required!"'})
+
+    if check_password_hash(user.password, auth.password):
+        token = jwt.encode({'id': user.id, 'exp': datetime.datetime.utcnow(
+        ) + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+
+        return jsonify({'token': token})
+
+    return make_response('Could not verify', 401, {'WWW-Authenticate': '\
+        Basic realm="Login required!"'})
+
+
+@app.route('/manager/user', methods=['POST'])
+@token_required
+def create_user(current_user):
+    if not current_user.admin:
+        return jsonify({'message': 'Cannot perform that function!'})
+
+    data = request.get_json()
+
+    hashed_password = generate_password_hash(data['password'], method='sha256')
+
+    new_user = User(name=data['name'], password=hashed_password, admin=False)
+    db.session.add(new_user)
+    db.session.commit()
+
+    return jsonify({'message': 'New user created!'})
 
 
 @app.route("/", methods=['GET'])
-@app.route('/index', methods=['GET'])
 def wellcome():
     if request.environ.get('HTTP_X_FORWARDED_FOR') is None:
         ip = request.environ.get('HTTP_X_REAL_IP', request.remote_addr)
@@ -63,10 +137,12 @@ def message_default(mail_id, mail_temp):
 @app.route("/generator", methods=['GET'])
 def generator(char_num=3, num=5):
     if request.cookies.get('cookies') and\
-         Mail.query.filter_by(cookie=request.cookies.get('cookies')).first():
+       Mail.query.filter_by(cookie=request.cookies.get('cookies')).first():
         obj = Mail.query.filter_by(
             cookie=request.cookies.get('cookies')).first()
-        res = obj.email + " your id email is: " + str(obj.id)
+        res = {}
+        res['id'] = str(obj.id)
+        res['email'] = obj.email
     else:
         provider = ['zwoho', 'couly', 'boofx', 'bizfly', 'vccorp']
         char = ''.join(random.choice(string.ascii_lowercase)
@@ -83,7 +159,10 @@ def generator(char_num=3, num=5):
             email=email_temp).first()
         id = obj.id
         message_default(id, email_temp)
-        res = make_response(email_temp + " your id email is:" + str(id))
+        result = {}
+        result['id'] = str(id)
+        result['email'] = email_temp
+        res = make_response(result)
         res.set_cookie('cookies', cookie, max_age=60*10)
     return res
 
@@ -111,16 +190,31 @@ def maildetail(id):
 
 
 @app.route("/manager", methods=["GET"])
-def manager():
+@token_required
+def manager(current_user):
+    if not current_user.admin:
+        return jsonify({'message': 'Cannot perform that function!'})
+
     if Mail.query.all() is not None:
-        res = Mail.query.all()
+        mails = Mail.query.all()
+        res = []
+        for mail in mails:
+            mail_data = {}
+            mail_data['id'] = mail.id
+            mail_data['cookie'] = mail.cookie
+            mail_data['email'] = mail.email
+            res.append(mail_data)
     else:
         res = "List Email empty"
-    return str(res)
+    return jsonify({'Email': res})
 
 
 @app.route("/manager/del-mail/<id>", methods=["DELETE"])
-def delete_mail(id):
+@token_required
+def delete_mail(current_user, id):
+    if not current_user.admin:
+        return jsonify({'message': 'Cannot perform that function!'})
+
     if Mail.query.filter_by(id=id).first():
         print(id)
         mail = Mail.query.filter_by(id=id).first()
