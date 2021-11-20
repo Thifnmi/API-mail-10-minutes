@@ -251,6 +251,8 @@ def manager(current_user):
             mail_data['id'] = mail.id
             mail_data['cookie'] = mail.cookie
             mail_data['email'] = mail.email
+            mail_data['ipv4_ad'] = mail.ipv4_ad
+            mail_data['created_on'] = mail.time
             res.append(mail_data)
 
         return jsonify({"Email": res})
