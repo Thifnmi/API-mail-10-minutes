@@ -1,4 +1,4 @@
-from flask import Flask, make_response, request, jsonify, abort
+from flask import Flask, make_response, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
 from flask_limiter import Limiter
@@ -99,47 +99,48 @@ def wellcome():
     now = datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=7)))
     if UserMail.query.filter_by(
-            ipv4_ad=ip).order_by(UserMail.id.desc()).first():
+            ipv4_ad=ip).order_by(UserMail.id.desc()).first() and (
+                now.timestamp() - datetime.datetime.strptime(
+                    (UserMail.query.filter_by(ipv4_ad=ip).order_by(
+                        UserMail.id.desc()).first()).time, "%Y-%m-%d %H:%M:%S"
+                ).timestamp() < 600):
         obj = UserMail.query.filter_by(
             ipv4_ad=ip).order_by(UserMail.id.desc()).first()
-        time = datetime.datetime.strptime(obj.time, "%Y-%m-%d %H:%M:%S")
-        if(now.timestamp() - (time).timestamp()) < 600:
-            res = {}
-            res['id'] = str(obj.id)
-            res['email'] = obj.email
-            return res
-        else:
-            provider = ['zwoho', 'couly', 'boofx', 'bizfly', 'vccorp']
-            char = ''.join(random.choice(string.ascii_lowercase)
-                           for _ in range(3))
-            nums = ''.join(random.choice(string.digits) for _ in range(5))
-            supplier = random.choice(provider)
-            email_temp = str(char) + str(nums) + "@" + supplier + ".com"
-            cookie = ''.join(random.choice(string.ascii_lowercase)
-                             for _ in range(20))
-            email = UserMail(
-                cookie=cookie, email=email_temp, ipv4_ad=ip,
-                time=datetime.datetime.now(datetime.timezone(
-                    datetime.timedelta(hours=7))).strftime(
-                        "%Y-%m-%d %H:%M:%S"))
-            try:
-                db.session.add(email)
-                db.session.commit()
-                obj = UserMail.query.filter_by(
-                    email=email_temp).first()
-                id = obj.id
-                message_default(id, email_temp)
-                result = {}
-                result['id'] = str(id)
-                result['email'] = email_temp
-                res = make_response(result)
-                res.set_cookie('cookies', cookie, max_age=60*10)
-            except SQLAlchemyError:
-                print(type(SQLAlchemyError))
-                db.session.rollback()
-                res = {}
-                res['message'] = "Error"
-        return res, 200
+        res = {}
+        res['id'] = str(obj.id)
+        res['email'] = obj.email
+    else:
+        provider = ['zwoho', 'couly', 'boofx', 'bizfly', 'vccorp']
+        char = ''.join(random.choice(string.ascii_lowercase)
+                       for _ in range(3))
+        nums = ''.join(random.choice(string.digits) for _ in range(5))
+        supplier = random.choice(provider)
+        email_temp = str(char) + str(nums) + "@" + supplier + ".com"
+        cookie = ''.join(random.choice(string.ascii_lowercase)
+                         for _ in range(20))
+        email = UserMail(
+            cookie=cookie, email=email_temp, ipv4_ad=ip,
+            time=datetime.datetime.now(datetime.timezone(
+                datetime.timedelta(hours=7))).strftime(
+                "%Y-%m-%d %H:%M:%S"))
+        try:
+            db.session.add(email)
+            db.session.commit()
+            obj = UserMail.query.filter_by(
+                email=email_temp).first()
+            id = obj.id
+            message_default(id, email_temp)
+            result = {}
+            result['id'] = str(id)
+            result['email'] = email_temp
+            res = make_response(result)
+            res.set_cookie('cookies', cookie, max_age=60*10)
+        except SQLAlchemyError:
+            print(type(SQLAlchemyError))
+            db.session.rollback()
+            # res = {}
+            res['message'] = "Error"
+    return res, 200
 
 
 def message_default(mail_id, mail_temp):
@@ -219,7 +220,7 @@ def mailbox():
 
         return jsonify({'message': 'mail_id not exist or deleted'})
 
-    return jsonify({'message': "url not found, try with '/mailbox?mail_id=<mail_id>'"})
+    return jsonify({'message': "try again with '/mailbox?mail_id=<mail_id>'"})
 
 
 @app.route("/mailbox/<id>", methods=["GET"])
