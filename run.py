@@ -20,7 +20,7 @@ db = SQLAlchemy(app)
 limit = Limiter(
     app=app,
     key_func=get_remote_address,
-    default_limits=['200/day', '50/hour', '1/5minute']
+    default_limits=['500/day', '200/hour', '20/minute']
 )
 
 
