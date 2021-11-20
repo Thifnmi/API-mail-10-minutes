@@ -9,11 +9,13 @@ click-repl==0.2.0
 colorama==0.4.4
 flake8==4.0.1
 Flask==2.0.2
+Flask-Limiter==1.4
 Flask-SQLAlchemy==2.5.1
 greenlet==1.1.2
 itsdangerous==2.0.1
 Jinja2==3.0.3
 kombu==5.2.2
+limits==1.5.1
 MarkupSafe==2.0.1
 mccabe==0.6.1
 prompt-toolkit==3.0.22
