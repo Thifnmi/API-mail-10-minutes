@@ -5,7 +5,7 @@ from functools import wraps
 import jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
-from app import db, limit
+from app import db, limit, app
 from app.dashboard.database import Account, UserMail, MailBox
 from sqlalchemy.exc import SQLAlchemyError
 
@@ -26,7 +26,7 @@ def token_required(f):
 
         try:
             data = jwt.decode(
-                token, blueprint.config['SECRET_KEY'], algorithms="HS256")
+                token, app.config['SECRET_KEY'], algorithms="HS256")
             current_acc = Account.query.filter_by(
                 id=data['id']).first()
 
@@ -111,15 +111,26 @@ def message_default(mail_id, mail_temp):
 @blueprint.route("/generator", methods=['GET'])
 @limit.limit("1/5second", override_defaults=False)
 def generator(char_num=3, num=5):
-    if request.cookies.get('cookies') and\
-       UserMail.query.filter_by(cookie=request.cookies.get('cookies')).first():
-        obj = UserMail.query.filter_by(
-            cookie=request.cookies.get('cookies')).first()
-        res = {}
-        res['id'] = str(obj.id)
-        res['email'] = obj.email
+    ip = get_ipv4()
+    now = datetime.datetime.now(
+        datetime.timezone(datetime.timedelta(hours=7)))
+    if request.cookies.get('cookies'):
+        if UserMail.query.filter_by(cookie=request.cookies.get(
+                'cookies'), ipv4_ad=ip).first() and (
+                now.timestamp() - datetime.datetime.strptime(
+                    (UserMail.query.filter_by(cookie=request.cookies.get(
+                        'cookies')).order_by(
+                        UserMail.id.desc()).first()).time, "%Y-%m-%d %H:%M:%S"
+                ).timestamp() < 600):
+            obj = UserMail.query.filter_by(
+                cookie=request.cookies.get('cookies')).first()
+            res = {}
+            res['id'] = str(obj.id)
+            res['email'] = obj.email
+        else:
+            res = {}
+            res['message'] = "Invalid cookie"
     else:
-        ip = get_ipv4()
         provider = ['zwoho', 'couly', 'boofx', 'bizfly', 'vccorp']
         char = ''.join(random.choice(string.ascii_lowercase)
                        for _ in range(char_num))
@@ -211,7 +222,7 @@ def manager(current_user):
     return jsonify({'message': "Database empty"}), 200
 
 
-@blueprint.route('/manager/login')
+@blueprint.route('/manager/login', methods=['GET'])
 def login():
     auth = request.authorization
 
@@ -227,7 +238,7 @@ def login():
 
     if check_password_hash(account.password, auth.password):
         token = jwt.encode({'id': account.id, 'exp': datetime.datetime.utcnow(
-        ) + datetime.timedelta(minutes=30)}, blueprint.config['SECRET_KEY'])
+        ) + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
 
         return jsonify({'token': token})
 
@@ -243,9 +254,10 @@ def create_user(current_acc):
         return jsonify({'message': 'Cannot perform that function!'})
 
     data = request.get_json()
+    if Account.query.filter_by(name=data['name']).first():
+        return jsonify({'message': 'This name already exist'})
 
     hashed_password = generate_password_hash(data['password'], method='sha256')
-
     new_acc = Account(name=data['name'], password=hashed_password, admin=False)
     try:
         db.session.add(new_acc)
