@@ -1,5 +1,4 @@
 from app import db
-from sqlalchemy.exc import SQLAlchemyError
 
 
 class Account(db.Model):
