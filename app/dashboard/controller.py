@@ -1,3 +1,4 @@
+import re
 from flask import Blueprint, request, jsonify, make_response
 import string
 import random
@@ -45,18 +46,28 @@ def get_ipv4():
     return request.environ['HTTP_X_FORWARDED_FOR']
 
 
+def get_current_time():
+    now = datetime.datetime.strptime((datetime.datetime.now(
+        datetime.timezone(datetime.timedelta(hours=7)))).strftime(
+            "%Y-%m-%d %H:%M:%S"), "%Y-%m-%d %H:%M:%S")
+    return now
+
+
+def convert_to_time(obj):
+    time = datetime.datetime.strptime(obj, "%Y-%m-%d %H:%M:%S")
+    return time
+
+
 @blueprint.route("/", methods=['GET'])
 @limit.limit('10/minute')
 def wellcome():
     ip = get_ipv4()
-    now = datetime.datetime.now(
-        datetime.timezone(datetime.timedelta(hours=7)))
+    now = get_current_time()
     if UserMail.query.filter_by(
             ipv4_ad=ip).order_by(UserMail.id.desc()).first() and (
-                now.timestamp() - datetime.datetime.strptime(
-                    (UserMail.query.filter_by(ipv4_ad=ip).order_by(
-                        UserMail.id.desc()).first()).time, "%Y-%m-%d %H:%M:%S"
-                ).timestamp() < 600):
+                now.timestamp() - convert_to_time((UserMail.query.filter_by(
+                    ipv4_ad=ip).order_by(
+                        UserMail.id.desc()).first()).time).timestamp() < 600):
         obj = UserMail.query.filter_by(
             ipv4_ad=ip).order_by(UserMail.id.desc()).first()
         res = {}
@@ -112,16 +123,14 @@ def message_default(mail_id, mail_temp):
 @limit.limit("1/5second", override_defaults=False)
 def generator(char_num=3, num=5):
     ip = get_ipv4()
-    now = datetime.datetime.now(
-        datetime.timezone(datetime.timedelta(hours=7)))
+    now = get_current_time()
     if request.cookies.get('cookies'):
         if UserMail.query.filter_by(cookie=request.cookies.get(
                 'cookies'), ipv4_ad=ip).first() and (
-                now.timestamp() - datetime.datetime.strptime(
+                now.timestamp() - convert_to_time(
                     (UserMail.query.filter_by(cookie=request.cookies.get(
                         'cookies')).order_by(
-                        UserMail.id.desc()).first()).time, "%Y-%m-%d %H:%M:%S"
-                ).timestamp() < 600):
+                        UserMail.id.desc()).first()).time).timestamp() < 600):
             obj = UserMail.query.filter_by(
                 cookie=request.cookies.get('cookies')).first()
             res = {}
