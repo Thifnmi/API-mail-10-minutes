@@ -1,63 +1,16 @@
-from flask import Flask, make_response, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.exc import SQLAlchemyError
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-import sys
+from flask import Blueprint, request, jsonify, make_response
 import string
 import random
 from functools import wraps
 import jwt
 from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
+from app import db, limit
+from app.dashboard.database import Account, UserMail, MailBox
+from sqlalchemy.exc import SQLAlchemyError
 
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'f0e1e037be55b9926d51d2dc20481b46'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///test.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-limit = Limiter(
-    app=app,
-    key_func=get_remote_address,
-    default_limits=['500/day', '200/hour', '20/minute']
-)
-
-
-class Account(db.Model):
-    __tablename__ = 'account'
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(50), nullable=False)
-    password = db.Column(db.String(80), nullable=False)
-    admin = db.Column(db.Boolean)
-
-
-class UserMail(db.Model):
-    __tablename__ = 'usermail'
-    id = db.Column(db.Integer, primary_key=True)
-    cookie = db.Column(db.String(80), nullable=False)
-    email = db.Column(db.String(120), nullable=False)
-    ipv4_ad = db.Column(db.String(120), nullable=False)
-    time = db.Column(db.String(120), nullable=False)
-
-    def __repr__(self):
-        return '["id": "{}", "email": "{}"]'.format(self.id, self.email)
-
-
-class MailBox(db.Model):
-    __tablename__ = 'mailbox'
-    id = db.Column(db.Integer, primary_key=True)
-    mail_id = db.Column(db.Integer, db.ForeignKey(
-        'usermail.id'), nullable=False)
-    mail = db.relationship(
-        'UserMail', backref=db.backref('MailBox', lazy=True))
-    email_from = db.Column(db.String(120), nullable=False)
-    title = db.Column(db.Text, nullable=False)
-    content = db.Column(db.Text, nullable=False)
-
-    def __repr__(self):
-        return '["from": "{}", "title": "{}", "content": "{}"]'.format(
-            self.email_from, self.title, self.content)
+blueprint = Blueprint('dashboard', __name__)
 
 
 def token_required(f):
@@ -73,7 +26,7 @@ def token_required(f):
 
         try:
             data = jwt.decode(
-                token, app.config['SECRET_KEY'], algorithms="HS256")
+                token, blueprint.config['SECRET_KEY'], algorithms="HS256")
             current_acc = Account.query.filter_by(
                 id=data['id']).first()
 
@@ -92,7 +45,7 @@ def get_ipv4():
     return request.environ['HTTP_X_FORWARDED_FOR']
 
 
-@app.route("/", methods=['GET'])
+@blueprint.route("/", methods=['GET'])
 @limit.limit('10/minute')
 def wellcome():
     ip = get_ipv4()
@@ -136,9 +89,8 @@ def wellcome():
             res = make_response(result)
             res.set_cookie('cookies', cookie, max_age=60*10)
         except SQLAlchemyError:
-            print(type(SQLAlchemyError))
             db.session.rollback()
-            # res = {}
+            res = {}
             res['message'] = "Error"
     return res, 200
 
@@ -156,7 +108,7 @@ def message_default(mail_id, mail_temp):
         db.session.rollback()
 
 
-@app.route("/generator", methods=['GET'])
+@blueprint.route("/generator", methods=['GET'])
 @limit.limit("1/5second", override_defaults=False)
 def generator(char_num=3, num=5):
     if request.cookies.get('cookies') and\
@@ -194,7 +146,6 @@ def generator(char_num=3, num=5):
             res = make_response(result)
             res.set_cookie('cookies', cookie, max_age=60*10)
         except SQLAlchemyError:
-            print(type(SQLAlchemyError))
             db.session.rollback()
             res = {}
             res['message'] = "Error"
@@ -202,7 +153,7 @@ def generator(char_num=3, num=5):
     return res
 
 
-@app.route("/mailbox", methods=["GET"])
+@blueprint.route("/mailbox", methods=["GET"])
 def mailbox():
     if request.args.get('mail_id'):
         mail_id = request.args.get('mail_id')
@@ -223,7 +174,7 @@ def mailbox():
     return jsonify({'message': "try again with '/mailbox?mail_id=<mail_id>'"})
 
 
-@app.route("/mailbox/<id>", methods=["GET"])
+@blueprint.route("/mailbox/<id>", methods=["GET"])
 def maildetail(id):
     if MailBox.query.filter_by(id=id).all():
         result = MailBox.query.filter_by(id=id).first()
@@ -237,13 +188,13 @@ def maildetail(id):
     return jsonify({'message': 'Email not exist'})
 
 
-@app.route("/manager", methods=["GET"])
+@blueprint.route("/manager", methods=["GET"])
 @token_required
 def manager(current_user):
     if not current_user.admin:
         return jsonify({'message': 'Cannot perform that function!'})
 
-    if UserMail.query.all() is not None:
+    if UserMail.query.count() is not None:
         mails = UserMail.query.all()
         res = []
         for mail in mails:
@@ -255,12 +206,12 @@ def manager(current_user):
             mail_data['created_on'] = mail.time
             res.append(mail_data)
 
-        return jsonify({"Email": res})
+        return jsonify({"Email": res}), 200
 
-    return jsonify({'message': "Database empty"})
+    return jsonify({'message': "Database empty"}), 200
 
 
-@app.route('/manager/login')
+@blueprint.route('/manager/login')
 def login():
     auth = request.authorization
 
@@ -276,7 +227,7 @@ def login():
 
     if check_password_hash(account.password, auth.password):
         token = jwt.encode({'id': account.id, 'exp': datetime.datetime.utcnow(
-        ) + datetime.timedelta(minutes=30)}, app.config['SECRET_KEY'])
+        ) + datetime.timedelta(minutes=30)}, blueprint.config['SECRET_KEY'])
 
         return jsonify({'token': token})
 
@@ -284,7 +235,7 @@ def login():
         Basic realm="Login required!"'})
 
 
-@app.route('/manager/user', methods=['POST'])
+@blueprint.route('/manager/user', methods=['POST'])
 @limit.limit('1/30second')
 @token_required
 def create_user(current_acc):
@@ -305,7 +256,7 @@ def create_user(current_acc):
         return jsonify({'message': 'Create user error'}), 400
 
 
-@app.route("/manager/del-mail/<id>", methods=["DELETE"])
+@blueprint.route("/manager/del-mail/<id>", methods=["DELETE"])
 @token_required
 def delete_mail(current_user, id):
     if not current_user.admin:
@@ -325,11 +276,3 @@ def delete_mail(current_user, id):
             return jsonify({"message": "Delete error"}), 400
 
     return jsonify({"message": "Email not exist"}), 404
-
-
-if __name__ == "__main__":
-    try:
-        port = int(sys.argv[1])
-    except (TypeError, IndexError):
-        port = 8080
-    app.run(debug=True, host='0.0.0.0', port=port)

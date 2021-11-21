@@ -48,7 +48,7 @@ public/admin/crm/
 venv
 Vagrantfile
 __pycache__
-# *.db
+*.db
 
 #-------------------------
 # Temporary Files
