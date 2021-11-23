@@ -45,7 +45,6 @@ def get_ipv4():
         return ip
     return request.environ['HTTP_X_FORWARDED_FOR']
 
-
 def get_current_time():
     now = datetime.datetime.strptime((datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=7)))).strftime(
@@ -73,6 +72,8 @@ def wellcome():
         res = {}
         res['id'] = str(obj.id)
         res['email'] = obj.email
+        res = make_response(res)
+        res.set_cookie('cookie', obj.cookie, max_age=0)
     else:
         provider = ['zwoho', 'couly', 'boofx', 'bizfly', 'vccorp']
         char = ''.join(random.choice(string.ascii_lowercase)
@@ -208,49 +209,58 @@ def maildetail(id):
     return jsonify({'message': 'Email not exist'})
 
 
-@blueprint.route('/sendmail', methods=['POST'])
+@blueprint.route('/sendmail', methods=['GET','POST'])
 def call_sendmail():
-    sendmail.delay()
-    return jsonify({'message': 'send a request to send mail'})
+    ipv4_ad = get_ipv4()
+    email_from = ""
+    title = ""
+    content = ""
+    if request.cookies.get('cookies'):
+        cookie = request.cookies.get('cookies')
+        data = request.get_json()
+        if data['email_from'] and data['subject'] and data['mail_content']:
+            email_from = data['email_from']
+            title = data['subject']
+            content = data['mail_content']
+    else:
+        cookie = None
+    print(cookie, ipv4_ad, title, email_from, content)
+    result = sendmail.delay(ipv4_ad, cookie, email_from, title, content)
+    res = {}
+    res['id'] = result.id
+    res['result'] = result.get()
+    return jsonify({'message': res})
 
 
-@celery.task
-def sendmail():
-    ip = get_ipv4()
+@celery.task()
+def sendmail(ipv4_ad, cookie, email_from, title, content):
     now = datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=7)))
-    if request.cookies.get('cookies'):
-        if UserMail.query.filter_by(cookie=request.cookies.get(
-                'cookies'), ipv4_ad=ip).first() and (
+    if cookie is not None:
+        if UserMail.query.filter_by(cookie=cookie, ipv4_ad=ipv4_ad).first() and (
                 now.timestamp() - datetime.datetime.strptime(
-                    (UserMail.query.filter_by(cookie=request.cookies.get(
-                        'cookies')).order_by(
+                    (UserMail.query.filter_by(cookie=cookie).order_by(
                         UserMail.id.desc()).first()).time, "%Y-%m-%d %H:%M:%S"
                 ).timestamp() < 600):
             mail_id = UserMail.query.filter_by(
-                cookie=request.cookies.get('cookies')).first().id
-            if 'mail_from' and 'subject' and 'mail_content' in request.headers:
-                email_from = request.headers['email_from']
-                title = request.headers['subject']
-                content = request.headers['mail_content']
+                cookie=cookie).first().id
+            if email_from and title and content is not None:
+                print(email_from, title, content)
                 message = MailBox(mail_id=mail_id, email_from=email_from,
-                                  title=title, content=content)
+                                    title=title, content=content)
                 try:
                     db.session.add(message)
+                    print(message)
                     db.session.commit()
+                    res = "email has been sent"
                 except SQLAlchemyError:
                     db.session.rollback()
-                res = {}
-                res['message'] = "email has been sent"
-            res = {}
-            res['message'] = "missing data"
+                    res = "insert error, rollback database"
+            res= "missing data"
         else:
-            res = {}
-            res['message'] = "Invalid cookie"
+            res = "Invalid cookie"
     else:
-        res = {}
-        res['message'] = "You spam???"
-
+        res = "You spam???"
     return res
 
 
