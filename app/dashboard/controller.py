@@ -207,6 +207,54 @@ def maildetail(id):
     return jsonify({'message': 'Email not exist'})
 
 
+@blueprint.route('/sendmail', methods=['POST'])
+def call_sendmail():
+    sendmail.delay()
+    return jsonify({'message': 'send a request to send mail'})
+
+
+from app import celery
+@celery.task
+def sendmail():
+    ip = get_ipv4()
+    now = datetime.datetime.now(
+        datetime.timezone(datetime.timedelta(hours=7)))
+    if request.cookies.get('cookies'):
+        if UserMail.query.filter_by(cookie=request.cookies.get(
+                'cookies'), ipv4_ad=ip).first() and (
+                now.timestamp() - datetime.datetime.strptime(
+                    (UserMail.query.filter_by(cookie=request.cookies.get(
+                        'cookies')).order_by(
+                        UserMail.id.desc()).first()).time, "%Y-%m-%d %H:%M:%S"
+                ).timestamp() < 600):
+            mail_id = UserMail.query.filter_by(
+                cookie=request.cookies.get('cookies')).first().id
+            if 'email_from' and 'subject' and 'mail_content' in request.headers:
+                email_from = request.headers['email_from']
+                title = request.headers['subject']
+                content = request.headers['mail_content']
+                message = MailBox(mail_id=mail_id, email_from=email_from,
+                        title=title, content=content)
+                try:
+                    db.session.add(message)
+                    db.session.commit()
+                except SQLAlchemyError:
+                    db.session.rollback()
+                res = {}
+                res['message'] = "email has been sent"
+            res = {}
+            res['message'] = "missing data"
+        else:
+            res = {}
+            res['message'] = "Invalid cookie"
+    else:
+        res = {}
+        res['message'] = "You spam???"
+    
+    return res
+
+
+
 @blueprint.route("/manager", methods=["GET"])
 @token_required
 def manager(current_user):
