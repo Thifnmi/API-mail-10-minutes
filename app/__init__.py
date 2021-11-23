@@ -3,10 +3,11 @@ from flask.json import jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from .dashboard.flask_celery import make_celery
+from .flask_celery import make_celery
 
 
 app = Flask(__name__)
+app.app_context()
 
 
 # Celery configuration

@@ -1,3 +1,4 @@
+from app import celery
 from flask import Blueprint, request, jsonify, make_response
 import string
 import random
@@ -213,7 +214,6 @@ def call_sendmail():
     return jsonify({'message': 'send a request to send mail'})
 
 
-from app import celery
 @celery.task
 def sendmail():
     ip = get_ipv4()
@@ -229,12 +229,12 @@ def sendmail():
                 ).timestamp() < 600):
             mail_id = UserMail.query.filter_by(
                 cookie=request.cookies.get('cookies')).first().id
-            if 'email_from' and 'subject' and 'mail_content' in request.headers:
+            if 'mail_from' and 'subject' and 'mail_content' in request.headers:
                 email_from = request.headers['email_from']
                 title = request.headers['subject']
                 content = request.headers['mail_content']
                 message = MailBox(mail_id=mail_id, email_from=email_from,
-                        title=title, content=content)
+                                  title=title, content=content)
                 try:
                     db.session.add(message)
                     db.session.commit()
@@ -250,9 +250,8 @@ def sendmail():
     else:
         res = {}
         res['message'] = "You spam???"
-    
-    return res
 
+    return res
 
 
 @blueprint.route("/manager", methods=["GET"])
