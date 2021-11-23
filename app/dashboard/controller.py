@@ -1,4 +1,3 @@
-import re
 from flask import Blueprint, request, jsonify, make_response
 import string
 import random
