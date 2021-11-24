@@ -45,6 +45,7 @@ def get_ipv4():
         return ip
     return request.environ['HTTP_X_FORWARDED_FOR']
 
+
 def get_current_time():
     now = datetime.datetime.strptime((datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=7)))).strftime(
@@ -73,7 +74,10 @@ def wellcome():
         res['id'] = str(obj.id)
         res['email'] = obj.email
         res = make_response(res)
-        res.set_cookie('cookie', obj.cookie, max_age=0)
+        cookie_life_time = now.timestamp() - convert_to_time((
+            UserMail.query.filter_by(ipv4_ad=ip).order_by(
+                UserMail.id.desc()).first()).time).timestamp()
+        res.set_cookie('cookie', obj.cookie, max_age=cookie_life_time)
     else:
         provider = ['zwoho', 'couly', 'boofx', 'bizfly', 'vccorp']
         char = ''.join(random.choice(string.ascii_lowercase)
@@ -136,7 +140,11 @@ def generator(char_num=3, num=5):
                 cookie=request.cookies.get('cookies')).first()
             res = {}
             res['id'] = str(obj.id)
-            res['email'] = obj.email
+            res['email'] = obj.emailres = make_response(res)
+            cookie_life_time = now.timestamp() - convert_to_time((
+                UserMail.query.filter_by(ipv4_ad=ip).order_by(
+                    UserMail.id.desc()).first()).time).timestamp()
+            res.set_cookie('cookie', obj.cookie, max_age=cookie_life_time)
         else:
             res = {}
             res['message'] = "Invalid cookie"
@@ -212,9 +220,9 @@ def maildetail(id):
 @blueprint.route('/sendmail', methods=['POST'])
 def call_sendmail():
     ipv4_ad = get_ipv4()
-    email_from = ""
-    title = ""
-    content = ""
+    email_from = None
+    title = None
+    content = None
     if request.cookies.get('cookies'):
         cookie = request.cookies.get('cookies')
         data = request.get_json()
@@ -237,7 +245,8 @@ def sendmail(ipv4_ad, cookie, email_from, title, content):
     now = datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=7)))
     if cookie is not None:
-        if UserMail.query.filter_by(cookie=cookie, ipv4_ad=ipv4_ad).first() and (
+        if UserMail.query.filter_by(
+            cookie=cookie, ipv4_ad=ipv4_ad).first() and (
                 now.timestamp() - datetime.datetime.strptime(
                     (UserMail.query.filter_by(cookie=cookie).order_by(
                         UserMail.id.desc()).first()).time, "%Y-%m-%d %H:%M:%S"
@@ -246,8 +255,9 @@ def sendmail(ipv4_ad, cookie, email_from, title, content):
                 cookie=cookie).first().id
             if email_from and title and content is not None:
                 print(email_from, title, content)
-                message = MailBox(mail_id=mail_id, email_from=email_from,
-                                    title=title, content=content)
+                message = MailBox(
+                    mail_id=mail_id, email_from=email_from,
+                    title=title, content=content)
                 try:
                     db.session.add(message)
                     print(message)
@@ -257,11 +267,11 @@ def sendmail(ipv4_ad, cookie, email_from, title, content):
                     db.session.rollback()
                     res = "insert error, rollback database"
             else:
-                res= "missing data"
+                res = "missing data"
         else:
             res = "Invalid cookie"
     else:
-        res = "You spam???"
+        res = "Missing cookie"
     return res
 
 
