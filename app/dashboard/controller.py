@@ -209,7 +209,7 @@ def maildetail(id):
     return jsonify({'message': 'Email not exist'})
 
 
-@blueprint.route('/sendmail', methods=['GET','POST'])
+@blueprint.route('/sendmail', methods=['POST'])
 def call_sendmail():
     ipv4_ad = get_ipv4()
     email_from = ""
@@ -256,7 +256,8 @@ def sendmail(ipv4_ad, cookie, email_from, title, content):
                 except SQLAlchemyError:
                     db.session.rollback()
                     res = "insert error, rollback database"
-            res= "missing data"
+            else:
+                res= "missing data"
         else:
             res = "Invalid cookie"
     else:
