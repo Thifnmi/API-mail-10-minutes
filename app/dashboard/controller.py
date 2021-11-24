@@ -77,7 +77,7 @@ def wellcome():
         cookie_life_time = now.timestamp() - convert_to_time((
             UserMail.query.filter_by(ipv4_ad=ip).order_by(
                 UserMail.id.desc()).first()).time).timestamp()
-        res.set_cookie('cookie', obj.cookie, max_age=cookie_life_time)
+        res.set_cookie('cookies', obj.cookie, max_age=cookie_life_time)
     else:
         provider = ['zwoho', 'couly', 'boofx', 'bizfly', 'vccorp']
         char = ''.join(random.choice(string.ascii_lowercase)
@@ -144,7 +144,7 @@ def generator(char_num=3, num=5):
             cookie_life_time = now.timestamp() - convert_to_time((
                 UserMail.query.filter_by(ipv4_ad=ip).order_by(
                     UserMail.id.desc()).first()).time).timestamp()
-            res.set_cookie('cookie', obj.cookie, max_age=cookie_life_time)
+            res.set_cookie('cookies', obj.cookie, max_age=cookie_life_time)
         else:
             res = {}
             res['message'] = "Invalid cookie"
@@ -191,7 +191,7 @@ def mailbox():
             response = []
             for result in results:
                 res = {}
-                res['id'] = result.id
+                res['mailbox_id'] = result.id
                 res['from'] = result.email_from
                 res['title'] = result.title
                 res['content'] = result.content
@@ -208,7 +208,7 @@ def maildetail(id):
     if MailBox.query.filter_by(id=id).all():
         result = MailBox.query.filter_by(id=id).first()
         res = {}
-        res['id'] = result.id
+        res['email_id'] = result.id
         res['from'] = result.email_from
         res['title'] = result.title
         res['content'] = result.content
@@ -232,7 +232,7 @@ def call_sendmail():
             content = data['mail_content']
     else:
         cookie = None
-    print(cookie, ipv4_ad, title, email_from, content)
+
     result = sendmail.delay(ipv4_ad, cookie, email_from, title, content)
     res = {}
     res['id'] = result.id
@@ -254,13 +254,11 @@ def sendmail(ipv4_ad, cookie, email_from, title, content):
             mail_id = UserMail.query.filter_by(
                 cookie=cookie).first().id
             if email_from and title and content is not None:
-                print(email_from, title, content)
                 message = MailBox(
                     mail_id=mail_id, email_from=email_from,
                     title=title, content=content)
                 try:
                     db.session.add(message)
-                    print(message)
                     db.session.commit()
                     res = "email has been sent"
                 except SQLAlchemyError:
