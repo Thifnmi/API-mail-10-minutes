@@ -9,7 +9,6 @@ from flask_mail import Mail
 
 app = Flask(__name__)
 
-
 # Celery configuration
 app.config['CELERY_BROKER_URL'] = 'amqp://localhost//'
 app.config['CELERY_BACKEND'] = 'db+sqlite:///database.db'
@@ -33,6 +32,7 @@ mail = Mail(app)
 
 celery = make_celery(app=app)
 db = SQLAlchemy(app)
+mail = Mail(app=app)
 limit = Limiter(
     app=app,
     key_func=get_remote_address,
