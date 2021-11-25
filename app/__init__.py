@@ -4,10 +4,10 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from .flask_celery import make_celery
+from flask_mail import Mail
 
 
 app = Flask(__name__)
-# app.app_context()
 
 
 # Celery configuration
@@ -17,12 +17,18 @@ app.config.from_object('config')
 
 
 # Flask-Mail configuration
-# app.config['MAIL_SERVER'] = 'smtp.googlemail.com'
-# app.config['MAIL_PORT'] = 587
-# app.config['MAIL_USE_TLS'] = True
-# app.config['MAIL_USERNAME'] = os.environ.get('MAIL_USERNAME')
-# app.config['MAIL_PASSWORD'] = os.environ.get('MAIL_PASSWORD')
-# app.config['MAIL_DEFAULT_SENDER'] = 'flask@example.com'
+mail_settings = {
+    "MAIL_SERVER": 'smtp.gmail.com',
+    "MAIL_PORT": 465,
+    "MAIL_USE_TLS": False,
+    "MAIL_USE_SSL": True,
+    "MAIL_USERNAME": "thewayshop.contact@gmail.com",
+    "MAIL_PASSWORD": 'qfdyskfuokajpxas'
+}
+
+
+app.config.update(mail_settings)
+mail = Mail(app)
 
 
 celery = make_celery(app=app)

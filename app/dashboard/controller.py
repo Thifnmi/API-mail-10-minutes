@@ -9,6 +9,7 @@ import datetime
 from app import db, limit, app
 from app.dashboard.database import Account, UserMail, MailBox
 from sqlalchemy.exc import SQLAlchemyError
+from flask_mail import Message
 
 
 blueprint = Blueprint('dashboard', __name__)
@@ -215,6 +216,31 @@ def maildetail(id):
         return jsonify({'info': res})
 
     return jsonify({'message': 'Email not exist'})
+
+
+@blueprint.route("/sendmailsmtp", methods=['POST'])
+def send_mail_smtp():
+    data = request.get_json()
+    try:
+        subject = data['subject']
+        content = data['content']
+        sender = data['sender'] 
+        recip = data['recipents']
+        recipents = []
+        for i in recip.values():
+            recipents.append(i)
+
+        from app import mail
+        with app.app_context():
+            msg = Message(subject=subject, sender=sender, recipients=recipents, body=content)
+            mail.send(msg)
+            res = "Done"
+
+    except KeyError as e:
+        res = {}
+        res['Missing'] = str(e)
+
+    return jsonify({"message": res})
 
 
 @blueprint.route('/sendmail', methods=['POST'])
