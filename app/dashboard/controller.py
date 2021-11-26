@@ -10,6 +10,10 @@ from app import db, limit, app
 from app.dashboard.database import Account, UserMail, MailBox
 from sqlalchemy.exc import SQLAlchemyError
 from flask_mail import Message
+from .smtp_server import SMTPServer
+import smtplib
+import email.utils
+from email.mime.text import MIMEText
 
 
 blueprint = Blueprint('dashboard', __name__)
@@ -216,6 +220,47 @@ def maildetail(id):
         return jsonify({'info': res})
 
     return jsonify({'message': 'Email not exist'})
+
+
+def send():
+    data = request.get_json()
+    try:
+        subject = data['subject']
+        content = data['content']
+        sender = data['sender'] 
+        recip = data['recipents']
+        # recipients = []
+        for recipient in recip.values():
+            # recipients.append(i)
+            msg = MIMEText('This is the body of the message.')
+            msg['To'] = email.utils.formataddr(('Recipient', recipient))
+            msg['From'] = email.utils.formataddr(('Author', sender))
+            msg['Subject'] = subject
+            msg['Content'] = content
+            client = smtplib.SMTP('127.0.0.1', 1025)
+            client.set_debuglevel(True)
+            try:
+                client.sendmail(sender, [recipient], msg.as_string())
+            finally:
+                client.quit()
+            res = {}
+            res['Message'] = "Done"
+
+    except KeyError as e:
+        res = {}
+        res['Missing'] = str(e)
+    return res
+
+
+@blueprint.route("/send-via-smtp-local", methods=['POST'])
+def send_via_smtp_local():
+    server = SMTPServer()
+    server.start()
+    try:
+        res = send()
+    finally:
+        server.stop()
+    return res
 
 
 @blueprint.route("/sendmailsmtp", methods=['POST'])
