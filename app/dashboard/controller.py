@@ -143,12 +143,13 @@ def generator(char_num=3, num=5):
                         UserMail.id.desc()).first()).time).timestamp() < 600):
             obj = UserMail.query.filter_by(
                 cookie=request.cookies.get('cookies')).first()
-            res = {}
-            res['id'] = str(obj.id)
-            res['email'] = obj.emailres = make_response(res)
+            result = {}
+            result['id'] = str(obj.id)
+            result['email'] = obj.email
             cookie_life_time = now.timestamp() - convert_to_time((
                 UserMail.query.filter_by(ipv4_ad=ip).order_by(
                     UserMail.id.desc()).first()).time).timestamp()
+            res = make_response(result)
             res.set_cookie('cookies', obj.cookie, max_age=cookie_life_time)
         else:
             res = {}
@@ -227,7 +228,7 @@ def send():
     try:
         subject = data['subject']
         content = data['content']
-        sender = data['sender'] 
+        sender = data['sender']
         recip = data['recipents']
         # recipients = []
         for recipient in recip.values():
@@ -269,7 +270,7 @@ def send_mail_smtp():
     try:
         subject = data['subject']
         content = data['content']
-        sender = data['sender'] 
+        sender = data['sender']
         recip = data['recipents']
         recipents = []
         for i in recip.values():
@@ -277,7 +278,8 @@ def send_mail_smtp():
 
         from app import mail
         with app.app_context():
-            msg = Message(subject=subject, sender=sender, recipients=recipents, body=content)
+            msg = Message(subject=subject, sender=sender,
+                          recipients=recipents, body=content)
             mail.send(msg)
             res = "Done"
 
