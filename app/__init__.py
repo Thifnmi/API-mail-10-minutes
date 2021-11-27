@@ -5,6 +5,7 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from .flask_celery import make_celery
 from flask_mail import Mail
+from .dashboard.smtp_server import SMTPServer
 
 
 app = Flask(__name__)
@@ -28,6 +29,8 @@ mail_settings = {
 
 app.config.update(mail_settings)
 mail = Mail(app)
+server = SMTPServer()
+server.start()
 
 
 celery = make_celery(app=app)

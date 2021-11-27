@@ -10,7 +10,7 @@ from app import db, limit, app
 from app.dashboard.database import Account, UserMail, MailBox
 from sqlalchemy.exc import SQLAlchemyError
 from flask_mail import Message
-from .smtp_server import SMTPServer
+from app import server
 import smtplib
 import email.utils
 from email.mime.text import MIMEText
@@ -255,8 +255,8 @@ def send():
 
 @blueprint.route("/send-via-smtp-local", methods=['POST'])
 def send_via_smtp_local():
-    server = SMTPServer()
-    server.start()
+    # server = SMTPServer()
+    # server.start()
     try:
         res = send()
     finally:
@@ -426,8 +426,8 @@ def delete_mail(current_user, id):
         mail_detail = MailBox.query.filter_by(mail_id=id).all()
         try:
             db.session.delete(mail)
-            for email in mail_detail:
-                db.session.delete(email)
+            for email_del in mail_detail:
+                db.session.delete(email_del)
             db.session.commit()
             return jsonify({"message": "Delete succesful"}), 200
         except SQLAlchemyError:
