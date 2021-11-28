@@ -29,9 +29,6 @@ mail_settings = {
 
 app.config.update(mail_settings)
 mail = Mail(app)
-server = SMTPServer()
-server.start()
-
 
 celery = make_celery(app=app)
 db = SQLAlchemy(app)

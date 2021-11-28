@@ -10,7 +10,8 @@ from app import db, limit, app
 from app.dashboard.database import Account, UserMail, MailBox
 from sqlalchemy.exc import SQLAlchemyError
 from flask_mail import Message
-from app import server
+# from app import server
+from .smtp_server import SMTPServer
 import smtplib
 import email.utils
 from email.mime.text import MIMEText
@@ -84,12 +85,12 @@ def wellcome():
                 UserMail.id.desc()).first()).time).timestamp()
         res.set_cookie('cookies', obj.cookie, max_age=cookie_life_time)
     else:
-        provider = ['zwoho', 'couly', 'boofx', 'bizfly', 'vccorp']
+        # provider = ['zwoho', 'couly', 'boofx', 'bizfly', 'vccorp']
         char = ''.join(random.choice(string.ascii_lowercase)
-                       for _ in range(3))
+                       for _ in range(4))
         nums = ''.join(random.choice(string.digits) for _ in range(5))
-        supplier = random.choice(provider)
-        email_temp = str(char) + str(nums) + "@" + supplier + ".com"
+        # supplier = random.choice(provider)
+        email_temp = str(char) + str(nums) + "@" + "thifnmi.pw"
         cookie = ''.join(random.choice(string.ascii_lowercase)
                          for _ in range(20))
         email = UserMail(
@@ -131,7 +132,7 @@ def message_default(mail_id, mail_temp):
 
 @blueprint.route("/generator", methods=['GET'])
 @limit.limit("1/5second", override_defaults=False)
-def generator(char_num=3, num=5):
+def generator(char_num=4, num=5):
     ip = get_ipv4()
     now = get_current_time()
     if request.cookies.get('cookies'):
@@ -155,12 +156,12 @@ def generator(char_num=3, num=5):
             res = {}
             res['message'] = "Invalid cookie"
     else:
-        provider = ['zwoho', 'couly', 'boofx', 'bizfly', 'vccorp']
+        # provider = ['zwoho', 'couly', 'boofx', 'bizfly', 'vccorp']
         char = ''.join(random.choice(string.ascii_lowercase)
                        for _ in range(char_num))
         nums = ''.join(random.choice(string.digits) for _ in range(num))
-        supplier = random.choice(provider)
-        email_temp = str(char) + str(nums) + "@" + supplier + ".com"
+        # supplier = random.choice(provider)
+        email_temp = str(char) + str(nums) + "@" + "thifnmi.pw"
         cookie = ''.join(random.choice(string.ascii_lowercase)
                          for _ in range(20))
         email = UserMail(
@@ -230,18 +231,15 @@ def send():
         content = data['content']
         sender = data['sender']
         recip = data['recipents']
-        # recipients = []
         for recipient in recip.values():
-            # recipients.append(i)
+            print(recipient, subject, content)
             msg = MIMEText('This is the body of the message.')
-            msg['To'] = email.utils.formataddr(('Recipient', recipient))
-            msg['From'] = email.utils.formataddr(('Author', sender))
             msg['Subject'] = subject
             msg['Content'] = content
             client = smtplib.SMTP('127.0.0.1', 1025)
             client.set_debuglevel(True)
             try:
-                client.sendmail(sender, [recipient], msg.as_string())
+                client.sendmail(sender, recipient, msg.as_string())
             finally:
                 client.quit()
             res = {}
@@ -255,8 +253,8 @@ def send():
 
 @blueprint.route("/send-via-smtp-local", methods=['POST'])
 def send_via_smtp_local():
-    # server = SMTPServer()
-    # server.start()
+    server = SMTPServer()
+    server.start()
     try:
         res = send()
     finally:
