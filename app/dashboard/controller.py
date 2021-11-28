@@ -10,10 +10,8 @@ from app import db, limit, app
 from app.dashboard.database import Account, UserMail, MailBox
 from sqlalchemy.exc import SQLAlchemyError
 from flask_mail import Message
-# from app import server
 from .smtp_server import SMTPServer
 import smtplib
-import email.utils
 from email.mime.text import MIMEText
 
 
@@ -29,7 +27,7 @@ def token_required(f):
             token = request.headers['x-access-token']
 
         if not token:
-            return jsonify({'message': 'Token is missing!'})
+            return jsonify({'message': 'Token is missing!'}), 400
 
         try:
             data = jwt.decode(
@@ -38,7 +36,7 @@ def token_required(f):
                 id=data['id']).first()
 
         except Exception:
-            return jsonify({'message': 'Token is invalid!'})
+            return jsonify({'message': 'Token is invalid!'}), 401
 
         return f(current_acc, *args, **kwargs)
 
@@ -93,13 +91,13 @@ def wellcome():
         email_temp = str(char) + str(nums) + "@" + "thifnmi.pw"
         cookie = ''.join(random.choice(string.ascii_lowercase)
                          for _ in range(20))
-        email = UserMail(
+        new_email = UserMail(
             cookie=cookie, email=email_temp, ipv4_ad=ip,
             time=datetime.datetime.now(datetime.timezone(
                 datetime.timedelta(hours=7))).strftime(
                 "%Y-%m-%d %H:%M:%S"))
         try:
-            db.session.add(email)
+            db.session.add(new_email)
             db.session.commit()
             obj = UserMail.query.filter_by(
                 email=email_temp).first()
@@ -118,7 +116,7 @@ def wellcome():
 
 
 def message_default(mail_id, mail_temp):
-    email_from = "systemmail10p@gmail.com"
+    email_from = "systemmail10p@thifnmi.pw"
     title = "Wellcome to mail 10p system"
     content = f"Your email is {mail_temp}"
     message = MailBox(mail_id=mail_id, email_from=email_from,
@@ -164,13 +162,13 @@ def generator(char_num=4, num=5):
         email_temp = str(char) + str(nums) + "@" + "thifnmi.pw"
         cookie = ''.join(random.choice(string.ascii_lowercase)
                          for _ in range(20))
-        email = UserMail(
+        new_email = UserMail(
             cookie=cookie, email=email_temp, ipv4_ad=ip,
             time=datetime.datetime.now(datetime.timezone(
                 datetime.timedelta(hours=7))).strftime(
                 "%Y-%m-%d %H:%M:%S"))
         try:
-            db.session.add(email)
+            db.session.add(new_email)
             db.session.commit()
             obj = UserMail.query.filter_by(
                 email=email_temp).first()
@@ -205,9 +203,9 @@ def mailbox():
                 response.append(res)
             return jsonify({'info': response})
 
-        return jsonify({'message': 'mail_id not exist or deleted'})
+        return jsonify({'message': 'mail_id not exist or deleted'}), 400
 
-    return jsonify({'message': "try again with '/mailbox?mail_id=<mail_id>'"})
+    return jsonify({'message': "try with '/mailbox?mail_id=<mail_id>'"}), 404
 
 
 @blueprint.route("/mailbox/<id>", methods=["GET"])
@@ -222,6 +220,47 @@ def maildetail(id):
         return jsonify({'info': res})
 
     return jsonify({'message': 'Email not exist'})
+
+
+@blueprint.route('/notify', methods=['POST'])
+def notify():
+    data = request.get_json()
+    try:
+        msg = data['message']
+        time = data['time']
+        res = {}
+        res['msg'] = msg
+        res['time notify'] = time
+        return jsonify({"Set notify succesful": res}), 201
+    except (TypeError, KeyError) as e:
+        return jsonify({"Set error": e}), 400
+
+
+@blueprint.route("/check-expiration-email", methods=["POST"])
+@token_required
+def check_expiration_email(current_user):
+    if not current_user.admin:
+        return jsonify({'message': 'Cannot perform that function!'}), 403
+    all_email = UserMail.query.all()
+    res = {}
+    no = 0
+    for email in all_email:
+        now = get_current_time()
+        if now.timestamp() - convert_to_time(email.time).timestamp() > 30*60:
+            mails_comming = MailBox.query.filter_by(mail_id=email.id).all()
+            try:
+                db.session.delete(email)
+                no += 1
+                for mail in mails_comming:
+                    db.session.delete(mail)
+                db.session.commit()
+                res['message'] = "Deleted"
+            except SQLAlchemyError:
+                db.session.rollback()
+                res['message'] = "Error, rollback database"
+        if no == 0:
+            res['message'] = "No expiration email"
+    return jsonify({'response': res})
 
 
 def send():
@@ -347,7 +386,7 @@ def sendmail(ipv4_ad, cookie, email_from, title, content):
 @token_required
 def manager(current_user):
     if not current_user.admin:
-        return jsonify({'message': 'Cannot perform that function!'})
+        return jsonify({'message': 'Cannot perform that function!'}), 403
 
     if UserMail.query.count() is not None:
         mails = UserMail.query.all()

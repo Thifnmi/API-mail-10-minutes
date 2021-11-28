@@ -4,7 +4,8 @@ import threading
 
 
 class CustomSMTPServer(smtpd.SMTPServer):
-    def process_message(self, peer, mailfrom, rcpttos, data, mail_options=None, rcpt_options=None):
+    def process_message(self, peer, mailfrom, rcpttos, data,
+                        mail_options=None, rcpt_options=None):
         # print('Receiving message from:', peer)
         # print('Message addressed from:', mailfrom)
         # print('Message addressed to:', rcpttos)
@@ -13,8 +14,7 @@ class CustomSMTPServer(smtpd.SMTPServer):
         from app import db
         from .database import MailBox, UserMail
         from sqlalchemy.exc import SQLAlchemyError
-        
-        
+
         for email in rcpttos:
             mail_id = UserMail.query.filter_by(email=email).first().id
             text = data.decode()
@@ -24,7 +24,8 @@ class CustomSMTPServer(smtpd.SMTPServer):
                 if text.split("\n")[i].startswith("Content"):
                     content = text.split("\n")[i].split(": ")[1]
 
-            message = MailBox(mail_id=mail_id, email_from=mailfrom, title=title, content=content)
+            message = MailBox(mail_id=mail_id, email_from=mailfrom,
+                              title=title, content=content)
             try:
                 db.session.add(message)
                 db.session.commit()
@@ -45,8 +46,6 @@ class SMTPServer():
     def stop(self):
         self.smtp.close()
         self.thread.is_alive = False
-
-        # self.thread.join()
 
     def get(self):
         return self.smtp.emails
