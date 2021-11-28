@@ -232,7 +232,6 @@ def send():
         sender = data['sender']
         recip = data['recipents']
         for recipient in recip.values():
-            print(recipient, subject, content)
             msg = MIMEText('This is the body of the message.')
             msg['Subject'] = subject
             msg['Content'] = content

@@ -14,6 +14,7 @@ class CustomSMTPServer(smtpd.SMTPServer):
         from .database import MailBox, UserMail
         from sqlalchemy.exc import SQLAlchemyError
         
+        
         for email in rcpttos:
             mail_id = UserMail.query.filter_by(email=email).first().id
             text = data.decode()
