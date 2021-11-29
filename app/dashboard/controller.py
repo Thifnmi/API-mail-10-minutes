@@ -283,7 +283,7 @@ def send():
             msg = MIMEText('This is the body of the message.')
             msg['Subject'] = subject
             msg['Content'] = content
-            client = smtplib.SMTP('192.168.66.177', 1025)
+            client = smtplib.SMTP('192.168.66.177', 2525)
             client.set_debuglevel(True)
             try:
                 client.sendmail(sender, recipient, msg.as_string())

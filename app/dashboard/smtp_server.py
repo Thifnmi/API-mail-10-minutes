@@ -1,13 +1,26 @@
 import smtpd
+from datetime import datetime
+import asyncore
+from threading import Thread
 
 
 class CustomSMTPServer(smtpd.SMTPServer):
+    # no = 0
     def process_message(self, peer, mailfrom, rcpttos, data,
                         mail_options=None, rcpt_options=None):
-        print('Receiving message from:', peer)
-        print('Message addressed from:', mailfrom)
-        print('Message addressed to:', rcpttos)
-        print('Message length:', data.decode())
+        # print('Receiving message from:', peer)
+        # print('Message addressed from:', mailfrom)
+        # print('Message addressed to:', rcpttos)
+        # print('Message length:', data.decode())
+
+        # filename = '%s-%d.eml' % (datetime.now().strftime('%Y%m%d%H%M%S'),
+        #     self.no)
+        # print(filename)
+        # f = open(filename, 'wb')
+        # f.write(data)
+        # f.close
+        # print('%s saved.' % filename)
+        # self.no += 1
 
         from app import db
         from .database import MailBox, UserMail
@@ -32,3 +45,29 @@ class CustomSMTPServer(smtpd.SMTPServer):
                 db.session.commit()
             except SQLAlchemyError:
                 db.session.rollback()
+
+
+# class SMTPServer():
+#     def __init__(self):
+#         self.port = 1025
+
+#     def start(self):
+#         self.smtp = CustomSMTPServer(('192.168.66.177', self.port), None)
+#         kwargs = {'timeout':1, 'use_poll': True}
+#         self.thread = Thread(target=asyncore.loop, kwargs=kwargs)
+#         self.thread.start()
+#         print("start server")
+
+#     def stop(self):
+#         self.smtp.close()
+#         self.thread.join()
+
+
+#     def get(self):
+#         return self.smtp.emails
+
+
+# server = CustomSMTPServer(('192.168.66.177', 2525), None)
+# print(server)
+
+# asyncore.loop()
