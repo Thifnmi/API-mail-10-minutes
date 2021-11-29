@@ -10,9 +10,10 @@ from app import db, limit, app
 from app.dashboard.database import Account, UserMail, MailBox
 from sqlalchemy.exc import SQLAlchemyError
 from flask_mail import Message
-from .smtp_server import SMTPServer
+# from .smtp_server import SMTPServer
 import smtplib
 from email.mime.text import MIMEText
+# from app import server
 
 
 blueprint = Blueprint('dashboard', __name__)
@@ -88,7 +89,7 @@ def wellcome():
                        for _ in range(4))
         nums = ''.join(random.choice(string.digits) for _ in range(5))
         # supplier = random.choice(provider)
-        email_temp = str(char) + str(nums) + "@" + "thifnmi.pw"
+        email_temp = str(char) + str(nums) + "@thifnmi.pw"
         cookie = ''.join(random.choice(string.ascii_lowercase)
                          for _ in range(20))
         new_email = UserMail(
@@ -159,7 +160,7 @@ def generator(char_num=4, num=5):
                        for _ in range(char_num))
         nums = ''.join(random.choice(string.digits) for _ in range(num))
         # supplier = random.choice(provider)
-        email_temp = str(char) + str(nums) + "@" + "thifnmi.pw"
+        email_temp = str(char) + str(nums) + "@thifnmi.pw"
         cookie = ''.join(random.choice(string.ascii_lowercase)
                          for _ in range(20))
         new_email = UserMail(
@@ -228,8 +229,10 @@ def notify():
     try:
         msg = data['message']
         time = data['time']
+        email = data['email']
         res = {}
         res['msg'] = msg
+        res['email'] = email
         res['time notify'] = time
         return jsonify({"Set notify succesful": res}), 201
     except (TypeError, KeyError) as e:
@@ -274,7 +277,7 @@ def send():
             msg = MIMEText('This is the body of the message.')
             msg['Subject'] = subject
             msg['Content'] = content
-            client = smtplib.SMTP('127.0.0.1', 1025)
+            client = smtplib.SMTP('192.168.66.177', 1025)
             client.set_debuglevel(True)
             try:
                 client.sendmail(sender, recipient, msg.as_string())
@@ -291,12 +294,13 @@ def send():
 
 @blueprint.route("/send-via-smtp-local", methods=['POST'])
 def send_via_smtp_local():
-    server = SMTPServer()
-    server.start()
+    # server = SMTPServer()
+    # server.start()
     try:
         res = send()
     finally:
-        server.stop()
+        pass
+        # server.stop()
     return res
 
 
