@@ -21,7 +21,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:''@localhost/datab
 
 # Flask-Mail configuration
 mail_settings = {
-    "MAIL_SERVER": 'thifnmi',
+    "MAIL_SERVER": 'thifnmi.pw',
     "MAIL_PORT": 1025,
     "MAIL_USE_TLS": False,
     "MAIL_USE_SSL": True,
@@ -52,11 +52,11 @@ from app.dashboard.controller import blueprint
 app.register_blueprint(blueprint)
 # db.create_all()
 
+
 def run_server(port):
     app.run(debug=True, host='0.0.0.0', port=port)
 
+
 def run_smtp(port):
     server = CustomSMTPServer(('192.168.66.177', port), None)
-    print(server)
-
     asyncore.loop()

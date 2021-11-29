@@ -1,6 +1,4 @@
 import smtpd
-import asyncore
-import threading
 
 
 class CustomSMTPServer(smtpd.SMTPServer):
@@ -26,7 +24,6 @@ class CustomSMTPServer(smtpd.SMTPServer):
                     content = text.split("\n")[i].split(": ")[1]
             if content is not None:
                 text = content
-            # content = text
 
             message = MailBox(mail_id=mail_id, email_from=mailfrom,
                               title=title, content=text)
@@ -35,27 +32,3 @@ class CustomSMTPServer(smtpd.SMTPServer):
                 db.session.commit()
             except SQLAlchemyError:
                 db.session.rollback()
-
-
-# class SMTPServer():
-#     def __init__(self):
-#         self.port = 1025
-
-#     def start(self):
-#         self.smtp = CustomSMTPServer(('0.0.0.0', 1025), None)
-#         kwargs = {'timeout': 1, 'use_poll': True}
-#         print(self.smtp)
-#         self.thread = threading.Thread(target=asyncore.loop, kwargs=kwargs)
-#         self.thread.start()
-
-#     def stop(self):
-#         self.smtp.close()
-#         self.thread.is_alive = False
-
-#     def get(self):
-#         return self.smtp.emails
-
-
-# if __name__ == '__main__':
-#     server = CustomSMTPServer(('192.168.66.177', 1025), None)
-#     asyncore.loop()

@@ -234,6 +234,12 @@ def notify():
         res['msg'] = msg
         res['email'] = email
         res['time notify'] = time
+        client = smtplib.SMTP('192.168.66.177', 1025)
+        client.set_debuglevel(True)
+        try:
+            client.sendmail('sysmail10p@thifnmi.pw', email, msg)
+        finally:
+            client.quit()
         return jsonify({"Set notify succesful": res}), 201
     except (TypeError, KeyError) as e:
         return jsonify({"Set error": e}), 400
@@ -298,8 +304,8 @@ def send_via_smtp_local():
     # server.start()
     try:
         res = send()
-    finally:
-        pass
+    except:
+        res = {"message": "error"}
         # server.stop()
     return res
 
