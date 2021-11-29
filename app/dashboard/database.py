@@ -5,7 +5,7 @@ class Account(db.Model):
     __tablename__ = 'account'
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), nullable=False)
-    password = db.Column(db.String(80), nullable=False)
+    password = db.Column(db.String(100), nullable=False)
     admin = db.Column(db.Boolean)
 
     def __init__(self, name, password, admin):
