@@ -10,10 +10,8 @@ from app import db, limit, app
 from app.dashboard.database import Account, UserMail, MailBox
 from sqlalchemy.exc import SQLAlchemyError
 from flask_mail import Message
-# from .smtp_server import SMTPServer
 import smtplib
 from email.mime.text import MIMEText
-# from app import server
 
 
 blueprint = Blueprint('dashboard', __name__)
@@ -61,6 +59,102 @@ def get_current_time():
 def convert_to_time(obj):
     time = datetime.datetime.strptime(obj, "%Y-%m-%d %H:%M:%S")
     return time
+
+
+@blueprint.errorhandler(429)
+def ratelimit_handler(e):
+    ip = get_ipv4()
+    now = get_current_time()
+    if request.cookies.get('cookies'):
+        if UserMail.query.filter_by(cookie=request.cookies.get(
+                'cookies'), ipv4_ad=ip).first() and (
+                now.timestamp() - convert_to_time(
+                    (UserMail.query.filter_by(cookie=request.cookies.get(
+                        'cookies')).order_by(
+                        UserMail.id.desc()).first()).time).timestamp() < 600):
+            obj = UserMail.query.filter_by(
+                cookie=request.cookies.get('cookies')).first()
+            result = {}
+            result['id'] = str(obj.id)
+            result['email'] = obj.email
+            cookie_life_time = now.timestamp() - convert_to_time((
+                UserMail.query.filter_by(ipv4_ad=ip).order_by(
+                    UserMail.id.desc()).first()).time).timestamp()
+            res = make_response(result)
+            res.set_cookie('cookies', obj.cookie, max_age=cookie_life_time)
+        else:
+            char = ''.join(random.choice(string.ascii_lowercase)
+                           for _ in range(4))
+            nums = ''.join(random.choice(string.digits) for _ in range(5))
+            email_temp = str(char) + str(nums) + "@thifnmi.pw"
+            cookie = ''.join(random.choice(string.ascii_lowercase)
+                             for _ in range(20))
+            new_email = UserMail(
+                cookie=cookie, email=email_temp, ipv4_ad=ip,
+                time=datetime.datetime.now(datetime.timezone(
+                    datetime.timedelta(hours=7))).strftime(
+                    "%Y-%m-%d %H:%M:%S"))
+            try:
+                db.session.add(new_email)
+                db.session.commit()
+                obj = UserMail.query.filter_by(
+                    email=email_temp).first()
+                id = obj.id
+                message_default(id, email_temp)
+                result = {}
+                result['id'] = str(id)
+                result['email'] = email_temp
+                res = make_response(result)
+                res.set_cookie('cookies', cookie, max_age=60*10)
+            except SQLAlchemyError:
+                db.session.rollback()
+                res = {}
+                res['message'] = "Error"
+    else:
+        if UserMail.query.filter_by(
+            ipv4_ad=ip).order_by(UserMail.id.desc()).first() and (
+                now.timestamp() - convert_to_time((UserMail.query.filter_by(
+                    ipv4_ad=ip).order_by(
+                        UserMail.id.desc()).first()).time).timestamp() < 600):
+            obj = UserMail.query.filter_by(
+                ipv4_ad=ip).order_by(UserMail.id.desc()).first()
+            res = {}
+            res['id'] = str(obj.id)
+            res['email'] = obj.email
+            res = make_response(res)
+            cookie_life_time = now.timestamp() - convert_to_time((
+                UserMail.query.filter_by(ipv4_ad=ip).order_by(
+                    UserMail.id.desc()).first()).time).timestamp()
+            res.set_cookie('cookies', obj.cookie, max_age=cookie_life_time)
+        else:
+            char = ''.join(random.choice(string.ascii_lowercase)
+                           for _ in range(4))
+            nums = ''.join(random.choice(string.digits) for _ in range(5))
+            email_temp = str(char) + str(nums) + "@thifnmi.pw"
+            cookie = ''.join(random.choice(string.ascii_lowercase)
+                             for _ in range(20))
+            new_email = UserMail(
+                cookie=cookie, email=email_temp, ipv4_ad=ip,
+                time=datetime.datetime.now(datetime.timezone(
+                    datetime.timedelta(hours=7))).strftime(
+                    "%Y-%m-%d %H:%M:%S"))
+            try:
+                db.session.add(new_email)
+                db.session.commit()
+                obj = UserMail.query.filter_by(
+                    email=email_temp).first()
+                id = obj.id
+                message_default(id, email_temp)
+                result = {}
+                result['id'] = str(id)
+                result['email'] = email_temp
+                res = make_response(result)
+                res.set_cookie('cookies', cookie, max_age=60*10)
+            except SQLAlchemyError:
+                db.session.rollback()
+                res = {}
+                res['message'] = "Error"
+    return res
 
 
 @blueprint.route("/", methods=['GET'])
@@ -298,18 +392,6 @@ def send():
     return res
 
 
-@blueprint.route("/send-via-smtp-local", methods=['POST'])
-def send_via_smtp_local():
-    # server = SMTPServer()
-    # server.start()
-    try:
-        res = send()
-    except:
-        res = {"message": "error"}
-        # server.stop()
-    return res
-
-
 @blueprint.route("/sendmailsmtp", methods=['POST'])
 def send_mail_smtp():
     data = request.get_json()
@@ -340,19 +422,22 @@ def send_mail_smtp():
 def call_sendmail():
     ipv4_ad = get_ipv4()
     email_from = None
+    email_to = None
     title = None
     content = None
     if request.cookies.get('cookies'):
         cookie = request.cookies.get('cookies')
+        email_from = UserMail.query.filter(cookie=cookie).first().email
         data = request.get_json()
-        if data['email_from'] and data['subject'] and data['mail_content']:
-            email_from = data['email_from']
+        if data['email_to'] and data['subject'] and data['mail_content']:
+            email_to = data['email_to']
             title = data['subject']
             content = data['mail_content']
     else:
         cookie = None
 
-    result = sendmail.delay(ipv4_ad, cookie, email_from, title, content)
+    result = sendmail.delay(ipv4_ad, cookie, email_from,
+                            email_to, title, content)
     res = {}
     res['id'] = result.id
     res['result'] = result.get()
@@ -360,33 +445,38 @@ def call_sendmail():
 
 
 @celery.task()
-def sendmail(ipv4_ad, cookie, email_from, title, content):
+def sendmail(ipv4_ad, cookie, email_from, email_to, title, content):
     now = datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=7)))
     if cookie is not None:
-        if UserMail.query.filter_by(
-            cookie=cookie, ipv4_ad=ipv4_ad).first() and (
-                now.timestamp() - datetime.datetime.strptime(
-                    (UserMail.query.filter_by(cookie=cookie).order_by(
-                        UserMail.id.desc()).first()).time, "%Y-%m-%d %H:%M:%S"
-                ).timestamp() < 600):
-            mail_id = UserMail.query.filter_by(
-                cookie=cookie).first().id
-            if email_from and title and content is not None:
-                message = MailBox(
-                    mail_id=mail_id, email_from=email_from,
-                    title=title, content=content)
-                try:
-                    db.session.add(message)
-                    db.session.commit()
-                    res = "email has been sent"
-                except SQLAlchemyError:
-                    db.session.rollback()
-                    res = "insert error, rollback database"
+        if email_to is not None:
+            if UserMail.query.filter_by(email=email_to).first():
+                mail_id = UserMail.query.filter_by(email=email_to).first().id
+                if UserMail.query.filter_by(
+                    cookie=cookie, ipv4_ad=ipv4_ad).first() and (
+                        now.timestamp() - datetime.datetime.strptime(
+                            (UserMail.query.filter_by(cookie=cookie).order_by(
+                                UserMail.id.desc()).first()).time, "%Y-%m-%d %H:%M:%S"
+                        ).timestamp() < 600):
+                    if email_from and title and content is not None:
+                        message = MailBox(
+                            mail_id=mail_id, email_from=email_from,
+                            title=title, content=content)
+                        try:
+                            db.session.add(message)
+                            db.session.commit()
+                            res = "email has been sent"
+                        except SQLAlchemyError:
+                            db.session.rollback()
+                            res = "insert error, rollback database"
+                    else:
+                        res = "missing data"
+                else:
+                    res = "Invalid cookie"
             else:
-                res = "missing data"
+                res = "Email not exist"
         else:
-            res = "Invalid cookie"
+            res = "Missing email_to"
     else:
         res = "Missing cookie"
     return res
@@ -440,7 +530,6 @@ def login():
 
 
 @blueprint.route('/manager/user', methods=['POST'])
-@limit.limit('1/30second')
 @token_required
 def create_user(current_acc):
     if not current_acc.admin:

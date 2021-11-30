@@ -1,7 +1,7 @@
 import smtpd
-from datetime import datetime
-import asyncore
-from threading import Thread
+# from datetime import datetime
+# import asyncore
+# from threading import Thread
 
 
 class CustomSMTPServer(smtpd.SMTPServer):
