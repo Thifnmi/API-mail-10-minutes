@@ -127,33 +127,49 @@ def ratelimit_handler(e):
                     UserMail.id.desc()).first()).time).timestamp()
             res.set_cookie('cookies', obj.cookie, max_age=cookie_life_time)
         else:
-            char = ''.join(random.choice(string.ascii_lowercase)
-                           for _ in range(4))
-            nums = ''.join(random.choice(string.digits) for _ in range(5))
-            email_temp = str(char) + str(nums) + "@thifnmi.pw"
-            cookie = ''.join(random.choice(string.ascii_lowercase)
-                             for _ in range(20))
-            new_email = UserMail(
-                cookie=cookie, email=email_temp, ipv4_ad=ip,
-                time=datetime.datetime.now(datetime.timezone(
-                    datetime.timedelta(hours=7))).strftime(
-                    "%Y-%m-%d %H:%M:%S"))
-            try:
-                db.session.add(new_email)
-                db.session.commit()
+            if UserMail.query.filter_by(
+                ipv4_ad=ip).order_by(UserMail.id.desc()).first() and (
+                now.timestamp() - convert_to_time((UserMail.query.filter_by(
+                    ipv4_ad=ip).order_by(
+                        UserMail.id.desc()).first()).time).timestamp() < 600):
                 obj = UserMail.query.filter_by(
-                    email=email_temp).first()
-                id = obj.id
-                message_default(id, email_temp)
-                result = {}
-                result['id'] = str(id)
-                result['email'] = email_temp
-                res = make_response(result)
-                res.set_cookie('cookies', cookie, max_age=60*10)
-            except SQLAlchemyError:
-                db.session.rollback()
+                    ipv4_ad=ip).order_by(UserMail.id.desc()).first()
                 res = {}
-                res['message'] = "Error"
+                res['id'] = str(obj.id)
+                res['email'] = obj.email
+                res = make_response(res)
+                cookie_life_time = now.timestamp() - convert_to_time((
+                    UserMail.query.filter_by(ipv4_ad=ip).order_by(
+                        UserMail.id.desc()).first()).time).timestamp()
+                res.set_cookie('cookies', obj.cookie, max_age=cookie_life_time)
+            else:
+                char = ''.join(random.choice(string.ascii_lowercase)
+                               for _ in range(4))
+                nums = ''.join(random.choice(string.digits) for _ in range(5))
+                email_temp = str(char) + str(nums) + "@thifnmi.pw"
+                cookie = ''.join(random.choice(string.ascii_lowercase)
+                                 for _ in range(20))
+                new_email = UserMail(
+                    cookie=cookie, email=email_temp, ipv4_ad=ip,
+                    time=datetime.datetime.now(datetime.timezone(
+                        datetime.timedelta(hours=7))).strftime(
+                        "%Y-%m-%d %H:%M:%S"))
+                try:
+                    db.session.add(new_email)
+                    db.session.commit()
+                    obj = UserMail.query.filter_by(
+                        email=email_temp).first()
+                    id = obj.id
+                    message_default(id, email_temp)
+                    result = {}
+                    result['id'] = str(id)
+                    result['email'] = email_temp
+                    res = make_response(result)
+                    res.set_cookie('cookies', cookie, max_age=600)
+                except SQLAlchemyError:
+                    db.session.rollback()
+                    res = {}
+                    res['message'] = "Error"
     return res
 
 
@@ -202,7 +218,7 @@ def wellcome():
             result['id'] = str(id)
             result['email'] = email_temp
             res = make_response(result)
-            res.set_cookie('cookies', cookie, max_age=60*10)
+            res.set_cookie('cookies', cookie, max_age=600)
         except SQLAlchemyError:
             db.session.rollback()
             res = {}
@@ -249,35 +265,52 @@ def generator(char_num=4, num=5):
             res = {}
             res['message'] = "Invalid cookie"
     else:
-        # provider = ['zwoho', 'couly', 'boofx', 'bizfly', 'vccorp']
-        char = ''.join(random.choice(string.ascii_lowercase)
-                       for _ in range(char_num))
-        nums = ''.join(random.choice(string.digits) for _ in range(num))
-        # supplier = random.choice(provider)
-        email_temp = str(char) + str(nums) + "@thifnmi.pw"
-        cookie = ''.join(random.choice(string.ascii_lowercase)
-                         for _ in range(20))
-        new_email = UserMail(
-            cookie=cookie, email=email_temp, ipv4_ad=ip,
-            time=datetime.datetime.now(datetime.timezone(
-                datetime.timedelta(hours=7))).strftime(
-                "%Y-%m-%d %H:%M:%S"))
-        try:
-            db.session.add(new_email)
-            db.session.commit()
+        if UserMail.query.filter_by(
+            ipv4_ad=ip).order_by(UserMail.id.desc()).first() and (
+                now.timestamp() - convert_to_time((UserMail.query.filter_by(
+                    ipv4_ad=ip).order_by(
+                        UserMail.id.desc()).first()).time).timestamp() < 600):
             obj = UserMail.query.filter_by(
-                email=email_temp).first()
-            id = obj.id
-            message_default(id, email_temp)
-            result = {}
-            result['id'] = str(id)
-            result['email'] = email_temp
-            res = make_response(result)
-            res.set_cookie('cookies', cookie, max_age=60*10)
-        except SQLAlchemyError:
-            db.session.rollback()
+                ipv4_ad=ip).order_by(UserMail.id.desc()).first()
             res = {}
-            res['message'] = "Error"
+            res['id'] = str(obj.id)
+            res['email'] = obj.email
+            res = make_response(res)
+            cookie_life_time = now.timestamp() - convert_to_time((
+                UserMail.query.filter_by(ipv4_ad=ip).order_by(
+                    UserMail.id.desc()).first()).time).timestamp()
+            res.set_cookie('cookies', obj.cookie, max_age=cookie_life_time)
+        else:
+
+            # provider = ['zwoho', 'couly', 'boofx', 'bizfly', 'vccorp']
+            char = ''.join(random.choice(string.ascii_lowercase)
+                           for _ in range(char_num))
+            nums = ''.join(random.choice(string.digits) for _ in range(num))
+            # supplier = random.choice(provider)
+            email_temp = str(char) + str(nums) + "@thifnmi.pw"
+            cookie = ''.join(random.choice(string.ascii_lowercase)
+                             for _ in range(20))
+            new_email = UserMail(
+                cookie=cookie, email=email_temp, ipv4_ad=ip,
+                time=datetime.datetime.now(datetime.timezone(
+                    datetime.timedelta(hours=7))).strftime(
+                    "%Y-%m-%d %H:%M:%S"))
+            try:
+                db.session.add(new_email)
+                db.session.commit()
+                obj = UserMail.query.filter_by(
+                    email=email_temp).first()
+                id = obj.id
+                message_default(id, email_temp)
+                result = {}
+                result['id'] = str(id)
+                result['email'] = email_temp
+                res = make_response(result)
+                res.set_cookie('cookies', cookie, max_age=600)
+            except SQLAlchemyError:
+                db.session.rollback()
+                res = {}
+                res['message'] = "Error"
 
     return res
 
