@@ -6,7 +6,6 @@ from app.dashboard.controller import save
 class CustomSMTPServer(smtpd.SMTPServer):
     def process_message(self, peer, mailfrom, rcpttos, data,
                         mail_options=None, rcpt_options=None):
-        print(data)
         save(data=data, rcpttos=rcpttos, mailfrom=mailfrom)
 
 
