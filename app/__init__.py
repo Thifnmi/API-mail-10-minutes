@@ -5,15 +5,15 @@ from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 from .flask_celery import make_celery
 from flask_mail import Mail
-from .dashboard.smtp_server import CustomSMTPServer
-import asyncore
+# from .dashboard.smtp_server import CustomSMTPServer
+# import asyncore
 
 
 app = Flask(__name__)
 
 # Celery configuration
 app.config['CELERY_BROKER_URL'] = 'amqp://localhost//'
-app.config['CELERY_BACKEND'] = 'db+mysql://root:@localhost/database'
+app.config['CELERY_BACKEND'] = 'amqp://localhost//'
 app.config.from_object('config')
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:''@localhost/database'
@@ -50,10 +50,11 @@ def not_found(error):
 
 from app.dashboard.controller import blueprint
 app.register_blueprint(blueprint)
+# server.start()
 # db.create_all()
 
 
-def run_smtp(port):
-    server = CustomSMTPServer(('192.168.66.177', port), None)
-    print(server)
-    asyncore.loop()
+# def run_smtp(port):
+#     server = CustomSMTPServer(('192.168.66.177', port), None)
+#     print(server)
+#     asyncore.loop()

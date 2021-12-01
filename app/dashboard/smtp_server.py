@@ -1,7 +1,7 @@
 import smtpd
 # from datetime import datetime
-# import asyncore
-# from threading import Thread
+import asyncore
+from threading import Thread
 
 
 class CustomSMTPServer(smtpd.SMTPServer):
@@ -47,27 +47,26 @@ class CustomSMTPServer(smtpd.SMTPServer):
                 db.session.rollback()
 
 
-# class SMTPServer():
-#     def __init__(self):
-#         self.port = 1025
+class SMTPServer():
+    def __init__(self):
+        self.port = 1025
 
-#     def start(self):
-#         self.smtp = CustomSMTPServer(('192.168.66.177', self.port), None)
-#         kwargs = {'timeout':1, 'use_poll': True}
-#         self.thread = Thread(target=asyncore.loop, kwargs=kwargs)
-#         self.thread.start()
-#         print("start server")
+    def start(self):
+        self.smtp = CustomSMTPServer(('192.168.66.177', self.port), None)
+        kwargs = {'timeout': 1, 'use_poll': True}
+        self.thread = Thread(target=asyncore.loop, kwargs=kwargs)
+        self.thread.start()
+        print("start server")
 
-#     def stop(self):
-#         self.smtp.close()
-#         self.thread.join()
+    def stop(self):
+        self.smtp.close()
+        self.thread.join()
+
+    def get(self):
+        return self.smtp.emails
 
 
-#     def get(self):
-#         return self.smtp.emails
-
-
-# server = CustomSMTPServer(('192.168.66.177', 2525), None)
+# server = CustomSMTPServer(('192.168.66.177', 1025), None)
 # print(server)
 
 # asyncore.loop()
