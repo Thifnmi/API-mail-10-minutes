@@ -13,10 +13,10 @@ app = Flask(__name__)
 
 # Celery configuration
 app.config['CELERY_BROKER_URL'] = 'amqp://localhost//'
-app.config['CELERY_BACKEND'] = 'amqp://localhost//'
+app.config['CELERY_BACKEND'] = 'rpc://localhost//'
 app.config.from_object('config')
 
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:''@localhost/database'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:tuvanthin@localhost/db'
 
 
 # Flask-Mail configuration
