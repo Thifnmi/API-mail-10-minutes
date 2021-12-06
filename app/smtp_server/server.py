@@ -1,6 +1,6 @@
 import smtpd
 import asyncore
-from app.dashboard.controller import save
+from app.smtp_server.mail_receive import save
 
 
 class CustomSMTPServer(smtpd.SMTPServer):
@@ -9,6 +9,6 @@ class CustomSMTPServer(smtpd.SMTPServer):
         save(data=data, rcpttos=rcpttos, mailfrom=mailfrom)
 
 
-if __name__ == '__main__':
-    server = CustomSMTPServer(('0.0.0.0', 1025), None)
-    asyncore.loop()
+# if __name__ == '__main__':
+#     server = CustomSMTPServer(('0.0.0.0', 1025), None)
+#     asyncore.loop()

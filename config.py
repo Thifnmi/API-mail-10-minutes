@@ -1,19 +1,36 @@
-# Define the application directory
+"""Flask config class."""
 import os
+from dotenv import load_dotenv
+basedir = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(basedir, '.env'))
 
 
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+class Config(object):
+    """Base config vars."""
+    DEBUG = True
+
+    SECRET_KEY = "f0e1e037be55b9926d51d2dc20481b46"
+
+    # Celery configuration
+    CELERY_BROKER_URL = 'amqp://localhost//'
+    CELERY_BACKEND = 'rpc://localhost//'
+
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:tuvanthin@localhost/db'
+    SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+    # Flask-Mail configuration
+    MAIL_SERVER = 'thifnmi.pw'
+    MAIL_PORT = 1025
+    MAIL_USE_TLS = False
+    MAIL_USE_SSL = True
+    MAIL_USERNAME = "systemail10p@thifnmi.pw"
+    # "MAIL_PASSWORD": 'qfdyskfuokajpxas'
 
 
-# Statement for enabling the development environment
-DEBUG = True
+class DevConfig(Config):
+    DEBUG = True
 
 
-# Define the database - we are working with
-SQLALCHEMY_DATABASE_URI = 'sqlite:///' + os.path.join(BASE_DIR, 'database.db')
-SQLALCHEMY_TRACK_MODIFICATIONS = False
-DATABASE_CONNECT_OPTIONS = {}
-
-
-# Secret key for signing cookies
-SECRET_KEY = "f0e1e037be55b9926d51d2dc20481b46"
+app_config = {
+    'dev': Config,
+}
