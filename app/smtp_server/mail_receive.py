@@ -1,4 +1,4 @@
-from app.models import UserMail, MailBox
+from app.models.models import UserMail, MailBox
 from app import db
 from sqlalchemy.exc import SQLAlchemyError
 

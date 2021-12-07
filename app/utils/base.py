@@ -19,4 +19,3 @@ def get_current_time():
 def convert_to_time(obj):
     time = datetime.datetime.strptime(obj, "%Y-%m-%d %H:%M:%S")
     return time
-

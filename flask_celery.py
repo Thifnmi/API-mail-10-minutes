@@ -3,30 +3,20 @@ from app import create_app
 
 
 class CeleryConfig:
-    CELERY_IMPORTS = ('app.api.send_email')
-    CELERY_TASK_RESULT_EXPIRES = 30
-    CELERY_ACCEPT_CONTENT = ['json', 'msgpack', 'yaml']
-    CELERY_TASK_SERIALIZER = 'json'
-    CELERY_RESULT_SERIALIZER = 'json'
-    CELERY_TIMEZONE = 'Asia/Ho_Chi_Minh'
-    CELERY_ENABLE_UTC = False
-    CELERY_BROKER_URL = 'amqp://localhost//'
-    CELERY_BACKEND = 'rpc://localhost//'
-# this is a place for scheduler with celery beat.
-# so, you can change 'task' part whatever you want.
-    CELERYBEAT_SCHEDULE = {
-        "time_scheduler": {
-            "task": "proj.tasks.what",
-            # set schedule time !
-            "schedule": 60.0
-        }
-    }
+    imports = ('app.api.send_email')
+    # result_expires = 120
+    # accept_content = ['json', 'msgpack', 'yaml']
+    # task_serializer = 'json'
+    # result_serializer = 'json'
+    # timezone = 'Asia/Ho_Chi_Minh'
+    # CELERY_enable_utc = False
+    # result_backend = 'db+sqlite:///database.db'
 
 
 def make_celery(app):
     celery = Celery(app.import_name,
-                    broker='amqp://localhost//',
-                    backend='rpc://localhost//'
+                    broker=app.config['CELERY_BROKER_URL'],
+                    backend=app.config['CELERY_BACKEND']
                     )
     celery.conf.update(app.config)
     TaskBase = celery.Task

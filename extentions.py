@@ -1,2 +1,4 @@
-from celery import Celery
-celery = Celery()
+# from celery import Celery
+
+
+# celery = Celery()

@@ -4,7 +4,7 @@ from functools import wraps
 from app.auth import bp
 import datetime
 from werkzeug.security import check_password_hash
-from app.models import Account
+from app.models.models import Account
 
 
 def token_required(f):

@@ -1,11 +1,11 @@
 from flask import jsonify, request
 from werkzeug.security import generate_password_hash
 from app.auth.routes import token_required
-from app.models import UserMail, MailBox, Account
+from app.models.models import UserMail, MailBox, Account
 from app import db
 from sqlalchemy.exc import SQLAlchemyError
 from app.api import bp
-from app.base import get_current_time, convert_to_time
+from app.utils.base import get_current_time, convert_to_time
 
 
 @bp.route("/manager", methods=["GET"])

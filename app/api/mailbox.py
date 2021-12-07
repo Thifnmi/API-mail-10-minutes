@@ -1,5 +1,5 @@
 from flask import request, jsonify
-from app.models import MailBox
+from app.models.models import MailBox
 from app.api import bp
 
 

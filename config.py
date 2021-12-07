@@ -12,8 +12,9 @@ class Config(object):
     SECRET_KEY = "f0e1e037be55b9926d51d2dc20481b46"
 
     # Celery configuration
-    CELERY_BROKER_URL = 'amqp://localhost//'
-    CELERY_BACKEND = 'rpc://localhost//'
+    CELERY_BROKER_URL = 'redis://localhost:6379/0'
+    CELERY_BACKEND = 'redis://localhost:6379/0'
+    # CELERY_BACKEND = 'rpc://'
 
     SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:tuvanthin@localhost/db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False

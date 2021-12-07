@@ -1,6 +1,6 @@
-from app.base import get_ipv4, get_current_time, convert_to_time
+from app.utils.base import get_ipv4, get_current_time, convert_to_time
 from flask import request, make_response
-from app.models import MailBox, UserMail
+from app.models.models import MailBox, UserMail
 import string
 import random
 from app import db
@@ -22,7 +22,7 @@ def message_default(mail_id, mail_temp):
         db.session.rollback()
 
 
-@bp.errorhandler(429)
+@bp.app_errorhandler(429)
 def ratelimit_handler(e):
     ip = get_ipv4()
     now = get_current_time()

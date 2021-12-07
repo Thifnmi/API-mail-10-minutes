@@ -1,11 +1,11 @@
 from flask import request, make_response
-from app.models import UserMail, MailBox
-from app.base import get_current_time, get_ipv4, convert_to_time
+from app.models.models import UserMail, MailBox
+from app.utils.base import get_current_time, get_ipv4, convert_to_time
 import string
 import random
 import datetime
 from sqlalchemy.exc import SQLAlchemyError
-from app import db
+from app import db, limit
 from app.api import bp
 
 
@@ -23,6 +23,7 @@ def message_default(mail_id, mail_temp):
 
 
 @bp.route('/', methods=['GET'])
+@limit.limit('10/day')
 def generator_follow_ip():
     ip = get_ipv4()
     now = get_current_time()

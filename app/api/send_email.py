@@ -1,14 +1,17 @@
-from app.base import get_ipv4
+from app.utils.base import get_ipv4
 from flask import request, jsonify
-from app.models import MailBox, UserMail
-from extentions import celery
+from app.models.models import MailBox, UserMail
+from flask_celery import celery
 import datetime
 from sqlalchemy.exc import SQLAlchemyError
 from app import db
 from app.api import bp
+# from celery.result import AsyncResult
+from app import limit
 
 
 @bp.route('/sendmail', methods=['POST'])
+@limit.limit('10/second')
 def call_sendmail():
     ipv4_ad = get_ipv4()
     email_from = None
@@ -25,18 +28,18 @@ def call_sendmail():
             content = data['mail_content']
     else:
         cookie = None
-    print("midle")
     result = sendmail.delay(ipv4_ad, cookie, email_from,
                             email_to, title, content)
+    task_id = result.task_id
+    re = sendmail.AsyncResult(task_id)
     res = {}
-    res['id'] = result.id
-    res['result'] = result.get()
+    res['id'] = re.id
+    res['result'] = re.get()
     return jsonify({'message': res})
 
 
 @celery.task()
 def sendmail(ipv4_ad, cookie, email_from, email_to, title, content):
-    print("123")
     now = datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=7)))
     if cookie is not None:
@@ -70,4 +73,5 @@ def sendmail(ipv4_ad, cookie, email_from, email_to, title, content):
             res = "Missing email_to"
     else:
         res = "Missing cookie"
+    # print(res)
     return res
