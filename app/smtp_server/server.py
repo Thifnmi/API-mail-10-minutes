@@ -1,6 +1,8 @@
 import smtpd
 import asyncore
+import threading
 from app.smtp_server.mail_receive import save
+from threading import Thread
 
 
 class CustomSMTPServer(smtpd.SMTPServer):
@@ -10,5 +12,13 @@ class CustomSMTPServer(smtpd.SMTPServer):
 
 
 # if __name__ == '__main__':
-#     server = CustomSMTPServer(('0.0.0.0', 1025), None)
-#     asyncore.loop()
+#     smtp = CustomSMTPServer(('0.0.0.0', 1025), None)
+#     print(smtp)
+#     kwargs = {'timeout': 1, 'use_poll': True}
+#     t = Thread(target=asyncore.loop, kwargs=kwargs)
+#     t.start()
+CustomSMTPServer(('0.0.0.0', 1025), None)
+kwargs = {'timeout': 1, 'use_poll': True}
+t = Thread(target=asyncore.loop, kwargs=kwargs)
+print(t)
+t.start()

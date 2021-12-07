@@ -5,6 +5,8 @@ from flask_limiter.util import get_remote_address
 from flask_mail import Mail
 from config import app_config
 from flask_migrate import Migrate
+# from app.smtp_server.server import SMTPServer
+import socket, errno
 
 
 mail = Mail()
@@ -25,6 +27,7 @@ def create_app(config_name, register_blueprints=True):
     mail.init_app(app)
     migrate.init_app(app, db)
     limit.init_app(app)
+    checkport()
 
     if register_blueprints:
         app = register_blueprint(app)
@@ -39,6 +42,15 @@ def register_blueprint(app):
     from app.errors import bp as errors_bp
     app.register_blueprint(errors_bp)
     return app
+
+
+def checkport():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        sock.connect(('0.0.0.0', 1025))
+    except:
+        from app.smtp_server import bp
+    sock.close()
 
 
 from app.models import models
