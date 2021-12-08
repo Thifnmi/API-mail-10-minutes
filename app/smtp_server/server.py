@@ -20,5 +20,4 @@ class CustomSMTPServer(smtpd.SMTPServer):
 CustomSMTPServer(('0.0.0.0', 1025), None)
 kwargs = {'timeout': 1, 'use_poll': True}
 t = Thread(target=asyncore.loop, kwargs=kwargs)
-print(t)
 t.start()

@@ -1,60 +1,24 @@
-from app.utils.base import get_ipv4
-from flask import request, jsonify
-from app.models.models import MailBox, UserMail
-from flask_celery import celery
-import datetime
-from sqlalchemy.exc import SQLAlchemyError
+from kafka import KafkaConsumer
 from app import db
-from app.api import bp
-from kafka import KafkaProducer
-from app import limit
+import datetime
+from app.models.models import UserMail, MailBox
+from sqlalchemy.exc import SQLAlchemyError
 import json
 
 
 bootstrap_servers = ['localhost:9092']
 
+cons = KafkaConsumer(
+    'test-topics',
+    group_id='group1',
+    bootstrap_servers=bootstrap_servers,
+    enable_auto_commit=True)
 
-@bp.route('/send-kafka', methods=['POST'])
-@limit.limit('100000/second')
-def send_kafka():
-    data = request.get_json()
-    producer = KafkaProducer(
-        bootstrap_servers=bootstrap_servers)
-
-    producer.send('test-topics', json.dumps(data).encode('utf-8'))
-    producer.flush()
-    return 'done'
+for message in cons:
+    data = json.loads(message.value.decode('utf-8'))
+    print(data)
 
 
-@bp.route('/sendmail', methods=['POST'])
-@limit.limit('10/second')
-def call_sendmail():
-    ipv4_ad = get_ipv4()
-    email_from = None
-    email_to = None
-    title = None
-    content = None
-    if request.cookies.get('cookies'):
-        cookie = request.cookies.get('cookies')
-        email_from = UserMail.query.filter_by(cookie=cookie).first().email
-        data = request.get_json()
-        if data['email_to'] and data['subject'] and data['mail_content']:
-            email_to = data['email_to']
-            title = data['subject']
-            content = data['mail_content']
-    else:
-        cookie = None
-    result = sendmail.delay(ipv4_ad, cookie, email_from,
-                            email_to, title, content)
-    task_id = result.task_id
-    re = sendmail.AsyncResult(task_id)
-    res = {}
-    res['id'] = re.id
-    res['result'] = re.get()
-    return jsonify({'message': res})
-
-
-@celery.task()
 def sendmail(ipv4_ad, cookie, email_from, email_to, title, content):
     now = datetime.datetime.now(
         datetime.timezone(datetime.timedelta(hours=7)))
@@ -89,5 +53,5 @@ def sendmail(ipv4_ad, cookie, email_from, email_to, title, content):
             res = "Missing email_to"
     else:
         res = "Missing cookie"
-    # print(res)
     return res
+

@@ -37,7 +37,7 @@ def generator_follow_ip():
         res = {}
         res['id'] = str(obj.id)
         res['email'] = obj.email
-        res['ip'] = ip
+        # res['ip'] = ip
         res = make_response(res)
         cookie_life_time = now.timestamp() - convert_to_time((
             UserMail.query.filter_by(ipv4_ad=ip).order_by(
@@ -67,7 +67,7 @@ def generator_follow_ip():
             result = {}
             result['id'] = str(id)
             result['email'] = email_temp
-            result['ip'] = ip
+            # result['ip'] = ip
             res = make_response(result)
             res.set_cookie('cookies', cookie, max_age=600)
         except SQLAlchemyError:
