@@ -1,9 +1,9 @@
-from flask import request, make_response
-from app.models.models import UserMail, MailBox
-from app.utils.base import get_current_time, get_ipv4, convert_to_time
 import string
 import random
 import datetime
+from flask import request, make_response
+from app.models.models import UserMail, MailBox
+from app.utils.base import get_current_time, get_ipv4, convert_to_time
 from sqlalchemy.exc import SQLAlchemyError
 from app import db, limit
 from app.api import bp

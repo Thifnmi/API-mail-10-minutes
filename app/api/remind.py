@@ -1,6 +1,6 @@
+import smtplib
 from flask import request, jsonify
 from app.api import bp
-import smtplib
 from app import limit
 
 

@@ -4,7 +4,6 @@ from sqlalchemy.exc import SQLAlchemyError
 
 
 def save(data, rcpttos, mailfrom):
-    # print(data, rcpttos, mailfrom)
     text = data.decode()
     try:
         text.split('swaks/\n\n')[1]

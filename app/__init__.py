@@ -5,7 +5,6 @@ from flask_limiter.util import get_remote_address
 from flask_mail import Mail
 from config import app_config
 from flask_migrate import Migrate
-# from app.smtp_server.server import SMTPServer
 import socket, errno
 
 
@@ -31,6 +30,7 @@ def create_app(config_name, register_blueprints=True):
 
     if register_blueprints:
         app = register_blueprint(app)
+    app.app_context().push()
     return app
 
 
@@ -51,6 +51,24 @@ def checkport():
     except:
         from app.smtp_server import bp
     sock.close()
+
+
+def consumer():
+    import json
+    from kafka import KafkaConsumer
+    from app.api.send_email import consumer_sendmail
+
+    bootstrap_servers = ['localhost:9092']
+
+    cons = KafkaConsumer(
+        'test-topics',
+        group_id='group1',
+        bootstrap_servers=bootstrap_servers,
+        enable_auto_commit=True)
+
+    for message in cons:
+        data = json.loads(message.value.decode('utf-8'))
+        consumer_sendmail(data=data)
 
 
 from app.models import models

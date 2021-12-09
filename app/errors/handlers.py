@@ -1,10 +1,10 @@
+import string
+import random
+import datetime
 from app.utils.base import get_ipv4, get_current_time, convert_to_time
 from flask import request, make_response
 from app.models.models import MailBox, UserMail
-import string
-import random
 from app import db
-import datetime
 from sqlalchemy.exc import SQLAlchemyError
 from app.errors import bp
 

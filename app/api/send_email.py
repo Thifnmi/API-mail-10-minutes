@@ -1,14 +1,14 @@
+import json
+import datetime
 from app.utils.base import get_ipv4
 from flask import request, jsonify
 from app.models.models import MailBox, UserMail
 from flask_celery import celery
-import datetime
 from sqlalchemy.exc import SQLAlchemyError
 from app import db
 from app.api import bp
 from kafka import KafkaProducer
 from app import limit
-import json
 
 
 bootstrap_servers = ['localhost:9092']

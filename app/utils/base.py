@@ -1,5 +1,5 @@
-from flask import request
 import datetime
+from flask import request
 
 
 def get_ipv4():
