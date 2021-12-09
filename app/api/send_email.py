@@ -17,13 +17,22 @@ bootstrap_servers = ['localhost:9092']
 @bp.route('/send-kafka', methods=['POST'])
 @limit.limit('100000/second')
 def send_kafka():
-    data = request.get_json()
-    producer = KafkaProducer(
-        bootstrap_servers=bootstrap_servers)
-
-    producer.send('test-topics', json.dumps(data).encode('utf-8'))
-    producer.flush()
-    return 'done'
+    ipv4_ad = get_ipv4()
+    email_from = None
+    if request.cookies.get('cookies'):
+        cookie = request.cookies.get('cookies')
+        email_from = UserMail.query.filter_by(cookie=cookie).first().email
+        data_post = request.get_json()
+        producer = KafkaProducer(
+            bootstrap_servers=bootstrap_servers)
+        data_post['ipv4_ad'] = ipv4_ad
+        data_post['email_from'] = email_from
+        data_post['cookie'] = cookie
+        producer.send('test-topics', json.dumps(data_post).encode('utf-8'))
+        producer.flush()
+        return 'done'
+    else:
+        return 'missing cookies'
 
 
 @bp.route('/sendmail', methods=['POST'])
@@ -89,5 +98,44 @@ def sendmail(ipv4_ad, cookie, email_from, email_to, title, content):
             res = "Missing email_to"
     else:
         res = "Missing cookie"
-    # print(res)
+    return res
+
+
+def consumer_sendmail(data):
+    now = datetime.datetime.now(
+        datetime.timezone(datetime.timedelta(hours=7)))
+    if data['cookie'] is not None:
+        if data['email_to'] is not None:
+            if UserMail.query.filter_by(email=data['email_to']).first():
+                mail_id = UserMail.query.filter_by(
+                    email=data['email_to']).first().id
+                if UserMail.query.filter_by(
+                    cookie=data['cookie'],
+                    ipv4_ad=data['ipv4_ad']).first() and (
+                        now.timestamp() - datetime.datetime.strptime(
+                            (UserMail.query.filter_by(
+                                cookie=data['cookie']).order_by(
+                                UserMail.id.desc()).first()).time,
+                            "%Y-%m-%d %H:%M:%S").timestamp() < 600):
+                    if data['email_from'] and data['subject'] and data['mail_content'] is not None:
+                        message = MailBox(
+                            mail_id=mail_id, email_from=data['email_from'],
+                            title=data['subject'], content=data['mail_content'])
+                        try:
+                            db.session.add(message)
+                            db.session.commit()
+                            res = "email has been sent"
+                        except SQLAlchemyError:
+                            db.session.rollback()
+                            res = "insert error, rollback database"
+                    else:
+                        res = "missing data"
+                else:
+                    res = "Invalid cookie"
+            else:
+                res = "Email not exist"
+        else:
+            res = "Missing email_to"
+    else:
+        res = "Missing cookie"
     return res

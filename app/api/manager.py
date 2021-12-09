@@ -2,13 +2,14 @@ from flask import jsonify, request
 from werkzeug.security import generate_password_hash
 from app.auth.routes import token_required
 from app.models.models import UserMail, MailBox, Account
-from app import db
+from app import db, limit
 from sqlalchemy.exc import SQLAlchemyError
 from app.api import bp
 from app.utils.base import get_current_time, convert_to_time
 
 
 @bp.route("/manager", methods=["GET"])
+@limit.limit('1000/second')
 @token_required
 def manager(current_user):
     if not current_user.admin:
@@ -32,6 +33,7 @@ def manager(current_user):
 
 
 @bp.route('/create-user', methods=['POST'])
+@limit.limit('1000/second')
 @token_required
 def create_user(current_acc):
     if not current_acc.admin:
@@ -53,6 +55,7 @@ def create_user(current_acc):
 
 
 @bp.route('/delete-email', methods=['POST'])
+@limit.limit('1000/second')
 @token_required
 def delete_mail(current_user, id):
     if not current_user.admin:
@@ -75,6 +78,7 @@ def delete_mail(current_user, id):
 
 
 @bp.route("/check-expiration-email", methods=["POST"])
+@limit.limit('1000/second')
 @token_required
 def check_expiration_email(current_user):
     if not current_user.admin:

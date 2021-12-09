@@ -1,9 +1,11 @@
 from flask import request, jsonify
 from app.models.models import MailBox
 from app.api import bp
+from app import limit
 
 
 @bp.route("/mailbox", methods=["GET"])
+@limit.limit('1000/second')
 def mailbox():
     if request.args.get('mail_id'):
         mail_id = request.args.get('mail_id')
@@ -25,6 +27,7 @@ def mailbox():
 
 
 @bp.route("/mailbox/<id>", methods=["GET"])
+@limit.limit('1000/second')
 def maildetail(id):
     if MailBox.query.filter_by(id=id).all():
         result = MailBox.query.filter_by(id=id).first()

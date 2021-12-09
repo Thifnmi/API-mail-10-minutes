@@ -1,9 +1,11 @@
 from flask import request, jsonify
 from app.api import bp
 import smtplib
+from app import limit
 
 
 @bp.route('/notify', methods=['POST'])
+@limit.limit('1000/second')
 def notify():
     data = request.get_json()
     try:
