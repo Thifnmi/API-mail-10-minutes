@@ -36,3 +36,4 @@ Werkzeug==2.0.2
 Flask-Migrate
 python-dotenv
 kafka-python
+cryptography

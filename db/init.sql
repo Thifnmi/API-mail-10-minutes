@@ -1,6 +1,11 @@
 -- MySQL dump 10.13  Distrib 8.0.27, for Linux (x86_64)
 --
 -- Host: localhost    Database: db
+
+-- create database db;
+use taotenladb;
+
+
 -- ------------------------------------------------------
 -- Server version	8.0.27-0ubuntu0.20.04.1
 
@@ -18,9 +23,6 @@
 --
 -- Table structure for table `account`
 --
-
-create database db;
-use db;
 
 
 DROP TABLE IF EXISTS `account`;

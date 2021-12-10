@@ -15,4 +15,4 @@ WORKDIR /app
 
 RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host=files.pythonhosted.org --no-cache-dir -r requirements.txt
 
-CMD flask run --host=0.0.0.0 --port=50001
+CMD flask run && python worker.py --mode=kafka
