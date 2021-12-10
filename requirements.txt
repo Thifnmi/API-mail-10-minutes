@@ -1,3 +1,4 @@
+wheel
 amqp==5.0.6
 autopep8==1.6.0
 billiard==3.6.4.0
@@ -33,3 +34,5 @@ vine==5.0.0
 wcwidth==0.2.5
 Werkzeug==2.0.2
 Flask-Migrate
+python-dotenv
+kafka-python

@@ -10,8 +10,10 @@ from app import consumer
 def worker(mode):
     """Try 'python/python3 worker.py --help' for help"""
     if mode == "kafka":
+        print('run kafka consumer')
         consumer()
     else:
+        print('run celery')
         os.system('celery -A flask_celery:celery worker --loglevel=info')
 
 

@@ -20,7 +20,7 @@ limit = Limiter(
 def create_app(config_name, register_blueprints=True):
     app = Flask(__name__)
     app.config.from_object(app_config[config_name])
-    app.config.from_pyfile('/home/thifnmi/Desktop/VCC_cau8/config.py')
+    app.config.from_pyfile('../config.py')
 
     db.init_app(app)
     mail.init_app(app)

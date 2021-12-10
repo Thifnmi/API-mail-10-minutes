@@ -13,7 +13,7 @@ class Config(object):
     CELERY_BROKER_URL = 'redis://localhost:6379/0'
     CELERY_BACKEND = 'redis://localhost:6379/0'
 
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root:tuvanthin@localhost/db'
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://root@localhost/db'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Flask-Mail configuration
