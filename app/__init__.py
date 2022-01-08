@@ -1,60 +1,74 @@
 from flask import Flask
-from flask.json import jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
-from .flask_celery import make_celery
 from flask_mail import Mail
-# from .dashboard.smtp_server import CustomSMTPServer
-# import asyncore
+from config import app_config
+from flask_migrate import Migrate
+import socket, errno
 
 
-app = Flask(__name__)
-
-# Celery configuration
-app.config['CELERY_BROKER_URL'] = 'amqp://localhost//'
-app.config['CELERY_BACKEND'] = 'rpc://localhost//'
-app.config.from_object('config')
-
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:tuvanthin@localhost/db'
-
-
-# Flask-Mail configuration
-mail_settings = {
-    "MAIL_SERVER": 'thifnmi.pw',
-    "MAIL_PORT": 1025,
-    "MAIL_USE_TLS": False,
-    "MAIL_USE_SSL": True,
-    "MAIL_USERNAME": "systemail10p@thifnmi.pw"
-    # "MAIL_PASSWORD": 'qfdyskfuokajpxas'
-}
-
-
-app.config.update(mail_settings)
-mail = Mail(app)
-
-celery = make_celery(app=app)
-db = SQLAlchemy(app)
-mail = Mail(app=app)
+mail = Mail()
+db = SQLAlchemy()
+migrate = Migrate()
 limit = Limiter(
-    app=app,
     key_func=get_remote_address,
     default_limits=['500/day', '200/hour', '20/minute']
 )
 
 
-@app.errorhandler(404)
-def not_found(error):
-    return jsonify({'message': "URL not found"}), 404
+def create_app(config_name, register_blueprints=True):
+    app = Flask(__name__)
+    app.config.from_object(app_config[config_name])
+    app.config.from_pyfile('../config.py')
+
+    db.init_app(app)
+    mail.init_app(app)
+    migrate.init_app(app, db)
+    limit.init_app(app)
+    checkport()
+
+    if register_blueprints:
+        app = register_blueprint(app)
+    app.app_context().push()
+    return app
 
 
-from app.dashboard.controller import blueprint
-app.register_blueprint(blueprint)
-# server.start()
-# db.create_all()
+def register_blueprint(app):
+    from app.auth import bp as auth_bp
+    app.register_blueprint(auth_bp, url_prefix="/auth")
+    from app.api import bp as api_bp
+    app.register_blueprint(api_bp, url_prefix="/api")
+    from app.errors import bp as errors_bp
+    app.register_blueprint(errors_bp)
+    return app
 
 
-# def run_smtp(port):
-#     server = CustomSMTPServer(('192.168.66.177', port), None)
-#     print(server)
-#     asyncore.loop()
+def checkport():
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        sock.connect(('0.0.0.0', 1025))
+    except:
+        from app.smtp_server import bp
+    sock.close()
+
+
+def consumer():
+    import json
+    from kafka import KafkaConsumer
+    from app.api.send_email import consumer_sendmail
+
+    bootstrap_servers = ['localhost:9092']
+
+    cons = KafkaConsumer(
+        'test-topics',
+        group_id='group1',
+        bootstrap_servers=bootstrap_servers,
+        enable_auto_commit=True)
+
+    for message in cons:
+        data = json.loads(message.value.decode('utf-8'))
+        consumer_sendmail(data=data)
+
+
+from app.models import models
