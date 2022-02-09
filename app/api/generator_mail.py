@@ -35,7 +35,7 @@ def generator_follow_ip():
         obj = UserMail.query.filter_by(
             ipv4_ad=ip).order_by(UserMail.id.desc()).first()
         res = {}
-        res['id'] = str(obj.id)
+        res['_id'] = str(obj.id)
         res['email'] = obj.email
         # res['ip'] = ip
         res = make_response(res)
@@ -65,7 +65,7 @@ def generator_follow_ip():
             id = obj.id
             message_default(id, email_temp)
             result = {}
-            result['id'] = str(id)
+            result['_id'] = str(id)
             result['email'] = email_temp
             # result['ip'] = ip
             res = make_response(result)
@@ -91,7 +91,7 @@ def generator_follow_cookie(char_num=4, num=5):
             obj = UserMail.query.filter_by(
                 cookie=request.cookies.get('cookies')).first()
             result = {}
-            result['id'] = str(obj.id)
+            result['_id'] = str(obj.id)
             result['email'] = obj.email
             cookie_life_time = now.timestamp() - convert_to_time((
                 UserMail.query.filter_by(ipv4_ad=ip).order_by(
@@ -110,7 +110,7 @@ def generator_follow_cookie(char_num=4, num=5):
             obj = UserMail.query.filter_by(
                 ipv4_ad=ip).order_by(UserMail.id.desc()).first()
             res = {}
-            res['id'] = str(obj.id)
+            res['_id'] = str(obj.id)
             res['email'] = obj.email
             res = make_response(res)
             cookie_life_time = now.timestamp() - convert_to_time((
@@ -140,7 +140,7 @@ def generator_follow_cookie(char_num=4, num=5):
                 id = obj.id
                 message_default(id, email_temp)
                 result = {}
-                result['id'] = str(id)
+                result['_id'] = str(id)
                 result['email'] = email_temp
                 res = make_response(result)
                 res.set_cookie('cookies', cookie, max_age=600)

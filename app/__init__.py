@@ -26,7 +26,7 @@ def create_app(config_name, register_blueprints=True):
     mail.init_app(app)
     migrate.init_app(app, db)
     limit.init_app(app)
-    checkport()
+    # checkport()
 
     if register_blueprints:
         app = register_blueprint(app)
@@ -36,9 +36,9 @@ def create_app(config_name, register_blueprints=True):
 
 def register_blueprint(app):
     from app.auth import bp as auth_bp
-    app.register_blueprint(auth_bp, url_prefix="/auth")
+    app.register_blueprint(auth_bp, url_prefix="/auth/v1")
     from app.api import bp as api_bp
-    app.register_blueprint(api_bp, url_prefix="/api")
+    app.register_blueprint(api_bp, url_prefix="/api/v1")
     from app.errors import bp as errors_bp
     app.register_blueprint(errors_bp)
     return app

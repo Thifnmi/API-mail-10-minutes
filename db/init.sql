@@ -3,7 +3,7 @@
 -- Host: localhost    Database: db
 
 -- create database db;
-use taotenladb;
+use database_mail_10_minutes;
 
 
 -- ------------------------------------------------------

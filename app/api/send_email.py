@@ -58,7 +58,7 @@ def call_sendmail():
     task_id = result.task_id
     re = sendmail.AsyncResult(task_id)
     res = {}
-    res['id'] = re.id
+    res['_id'] = re.id
     res['result'] = re.get()
     return jsonify({'message': res})
 

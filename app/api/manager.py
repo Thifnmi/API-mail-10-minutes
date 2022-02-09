@@ -54,7 +54,7 @@ def create_user(current_acc):
         return jsonify({'message': 'Create user error'}), 400
 
 
-@bp.route('/delete-email', methods=['POST'])
+@bp.route('/delete-email/<id>', methods=['POST'])
 @limit.limit('1000/second')
 @token_required
 def delete_mail(current_user, id):

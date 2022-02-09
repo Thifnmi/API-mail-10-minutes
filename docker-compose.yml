@@ -1,25 +1,30 @@
 version: "3"
 services:
   app:
+    container_name: api_mail_10_minutes
     build: .
     links:
       - db
     ports:
-      - "50001:50001"
+      - 80:80
     restart: always
-    # depends_on:
-    #   - db
+    depends_on:
+      - db
     networks:
       ci-cd:
-        ipv4_address: 10.29.0.5
+        ipv4_address: 10.29.0.2
+    environment:
+      - SECRET_KEY=f0e1e037be55b9926d51d2dc20481b46
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://root:root@10.29.0.3:3306/database_mail_10_minutes
   db:
+    container_name: database
     image: mysql
     restart: always
     ports:
       - "33006:3306"
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: taotenladb
+      MYSQL_DATABASE: database_mail_10_minutes
       MYSQL_USER: test
       MYSQL_PASSWORD: password
 
@@ -27,9 +32,10 @@ services:
       - ./db:/docker-entrypoint-initdb.d/:ro
     networks:
       ci-cd:
-        ipv4_address: 10.29.0.6
+        ipv4_address: 10.29.0.3
 
   phpmyadmin:
+    container_name: phpmyadmin
     image: phpmyadmin/phpmyadmin
     ports:
       - 8088:80
@@ -40,7 +46,7 @@ services:
       - db
     networks:
       ci-cd:
-        ipv4_address: 10.29.0.7
+        ipv4_address: 10.29.0.4
 
 networks:
   ci-cd:

@@ -1,18 +1,19 @@
 FROM python:3.8
 
+EXPOSE 80
 
-RUN pip install --upgrade pip
+RUN mkdir -p /src
+WORKDIR /src
+
+RUN apt-get update
+
+COPY requirements.txt /src
+
+RUN pip install -r requirements.txt
 
 
-EXPOSE 50001
+COPY . /src
 
 
-ADD . /app
-COPY requirements.txt /app
-
-
-WORKDIR /app
-
-RUN pip install --trusted-host pypi.org --trusted-host pypi.python.org --trusted-host=files.pythonhosted.org --no-cache-dir -r requirements.txt
-
-CMD flask run && python worker.py --mode=kafka
+CMD flask run -h 0.0.0.0 -p 80
+#&& python worker.py --mode=kafka

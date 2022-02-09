@@ -1,19 +1,32 @@
 """Flask config class."""
 import os
+import json
 from dotenv import load_dotenv
-basedir = os.path.abspath(os.path.dirname(__file__))
-load_dotenv(os.path.join(basedir, '.env'))
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(dotenv_path=os.path.join(BASE_DIR, ".env"))
+
+
+def _get_config_value(key, default_value=None):
+    value = os.environ.get(key, default_value)
+    if (value is not None and value != "") and isinstance(value, str):
+        if value.isdigit():
+            value = int(value)
+        elif isinstance(value, str) and key.endswith("LIST"):
+            value = json.loads(value)
+
+    return value
 
 
 class Config(object):
     """Base config vars."""
-    SECRET_KEY = "f0e1e037be55b9926d51d2dc20481b46"
+    SECRET_KEY = _get_config_value("SECRET_KEY", "")
 
     # Celery configuration
     CELERY_BROKER_URL = 'redis://localhost:6379/0'
     CELERY_BACKEND = 'redis://localhost:6379/0'
 
-    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://test:password@10.29.0.6:3306/taotenladb'
+    SQLALCHEMY_DATABASE_URI = _get_config_value("SQLALCHEMY_DATABASE_URI", "")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
 
     # Flask-Mail configuration
