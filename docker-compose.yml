@@ -1,55 +1,56 @@
 version: "3"
 services:
+  # database:
+  #   container_name: database
+  #   image: mysql:8.0
+  #   restart: always
+  #   # ports:
+  #   #   - "33006:3306"
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: root
+  #     MYSQL_DATABASE: database_mail_10_minutes
+  #     MYSQL_USER: test
+  #     MYSQL_PASSWORD: password
+  #   command: mysqld --default-authentication-plugin=mysql_native_password --skip-mysqlx
+  #   volumes:
+  #     - ./database:/docker-entrypoint-initdb.d/:ro
+  
   app:
     container_name: api_mail_10_minutes
     build: .
-    links:
-      - db
+    # links:
+    #   - database
     ports:
-      - 80:80
+      - "8080:8080"
     restart: always
-    depends_on:
-      - db
-    networks:
-      ci-cd:
-        ipv4_address: 10.29.0.2
+    # depends_on:
+    #   - database
+    # networks:
+    #   ci-cd:
+    #     ipv4_address: 10.29.0.2
     environment:
       - SECRET_KEY=f0e1e037be55b9926d51d2dc20481b46
-      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://root:root@10.29.0.3:3306/database_mail_10_minutes
-  db:
-    container_name: database
-    image: mysql
-    restart: always
-    ports:
-      - "33006:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: database_mail_10_minutes
-      MYSQL_USER: test
-      MYSQL_PASSWORD: password
-
+      - SQLALCHEMY_DATABASE_URI=mysql+pymysql://root:tuvanthin@103.56.158.215:3306/database_mail_10_minutes
     volumes:
-      - ./db:/docker-entrypoint-initdb.d/:ro
-    networks:
-      ci-cd:
-        ipv4_address: 10.29.0.3
+      - .env:/app/.env
 
-  phpmyadmin:
-    container_name: phpmyadmin
-    image: phpmyadmin/phpmyadmin
-    ports:
-      - 8088:80
-    restart: always
-    environment:
-      PMA_HOST: db
-    depends_on:
-      - db
-    networks:
-      ci-cd:
-        ipv4_address: 10.29.0.4
 
-networks:
-  ci-cd:
-    ipam:
-      config:
-        - subnet: 10.29.0.0/16
+  # phpmyadmin:
+  #   container_name: phpmyadmin
+  #   image: phpmyadmin/phpmyadmin
+  #   ports:
+  #     - "8088:8088"
+  #   restart: always
+  #   environment:
+  #     PMA_HOST: database
+  #   depends_on:
+  #     - database
+    # networks:
+    #   ci-cd:
+    #     ipv4_address: 10.29.0.4
+
+# networks:
+#   ci-cd:
+#     ipam:
+#       config:
+#         - subnet: 10.29.0.0/16
