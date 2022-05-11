@@ -31,7 +31,7 @@ DROP TABLE IF EXISTS `account`;
 CREATE TABLE `account` (
   `id` int NOT NULL AUTO_INCREMENT,
   `name` varchar(50) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `password` varchar(80) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `password` varchar(150) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `admin` tinyint(1) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb3 COLLATE=utf8_unicode_ci;
@@ -43,7 +43,7 @@ CREATE TABLE `account` (
 
 LOCK TABLES `account` WRITE;
 /*!40000 ALTER TABLE `account` DISABLE KEYS */;
-INSERT INTO `account` VALUES (1,'Thifnmi','sha256$tyWsQZ2EyUkLp7C9$b48a8bb4f7128bdd8f70e31caf95bad471d882a3034298616661badb',1),(2,'Admin','sha256$Mbuu4F74xDVX4Kmk$f0736da36ce3c859981a345d724f63fc1c7b7b271238a7a1b98f84c0',1);
+INSERT INTO `account` VALUES (1,'Thifnmi','sha256$VyflAEzSBVR7YXEb$5f794ffcee6a7c9571e41329d9c4ea160459e1b5dbd8cc36d9ae36b3c591082b ',1),(2,'Admin','sha256$VyflAEzSBVR7YXEb$5f794ffcee6a7c9571e41329d9c4ea160459e1b5dbd8cc36d9ae36b3c591082b ',1);
 /*!40000 ALTER TABLE `account` ENABLE KEYS */;
 UNLOCK TABLES;
 

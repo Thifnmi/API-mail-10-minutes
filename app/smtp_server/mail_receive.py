@@ -14,6 +14,7 @@ def save(data, rcpttos, mailfrom):
         title = text.split('/\n')[1].split('\n\n')[0]
 
     for email in rcpttos:
+        print('lol')
         mail_id = UserMail.query.filter_by(email=email).first().id
         content = text.split('\n\n')[1]
         message = MailBox(mail_id=mail_id, email_from=mailfrom,

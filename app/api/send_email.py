@@ -9,6 +9,7 @@ from app import db
 from app.api import bp
 from kafka import KafkaProducer
 from app import limit
+from time import sleep
 
 
 bootstrap_servers = ['localhost:9092']
@@ -82,6 +83,7 @@ def sendmail(ipv4_ad, cookie, email_from, email_to, title, content):
                             mail_id=mail_id, email_from=email_from,
                             title=title, content=content)
                         try:
+                            sleep(10)
                             db.session.add(message)
                             db.session.commit()
                             res = "email has been sent"

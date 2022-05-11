@@ -20,7 +20,7 @@ def manager(current_user):
         res = []
         for mail in mails:
             mail_data = {}
-            mail_data['id'] = mail.id
+            mail_data['_id'] = mail.id
             mail_data['cookie'] = mail.cookie
             mail_data['email'] = mail.email
             mail_data['ipv4_ad'] = mail.ipv4_ad
@@ -32,7 +32,7 @@ def manager(current_user):
     return jsonify({'message': "Database empty"}), 200
 
 
-@bp.route('/create-user', methods=['POST'])
+@bp.route('/manager/create-user', methods=['POST'])
 @limit.limit('1000/second')
 @token_required
 def create_user(current_acc):
@@ -54,7 +54,7 @@ def create_user(current_acc):
         return jsonify({'message': 'Create user error'}), 400
 
 
-@bp.route('/delete-email/<id>', methods=['POST'])
+@bp.route('/manage/delete-email/<id>', methods=['DELETE'])
 @limit.limit('1000/second')
 @token_required
 def delete_mail(current_user, id):
@@ -77,7 +77,7 @@ def delete_mail(current_user, id):
     return jsonify({"message": "Email not exist"}), 404
 
 
-@bp.route("/check-expiration-email", methods=["POST"])
+@bp.route("/manager/check-expiration-email", methods=["POST"])
 @limit.limit('1000/second')
 @token_required
 def check_expiration_email(current_user):

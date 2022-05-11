@@ -1,3 +1,4 @@
+import os
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_limiter import Limiter
@@ -20,13 +21,16 @@ limit = Limiter(
 def create_app(config_name, register_blueprints=True):
     app = Flask(__name__)
     app.config.from_object(app_config[config_name])
+    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
     app.config.from_pyfile('../config.py')
 
     db.init_app(app)
+    with app.app_context():
+        db.create_all()
     mail.init_app(app)
     migrate.init_app(app, db)
     limit.init_app(app)
-    # checkport()
+    checkport()
 
     if register_blueprints:
         app = register_blueprint(app)

@@ -23,8 +23,8 @@ class Config(object):
     SECRET_KEY = _get_config_value("SECRET_KEY", "")
 
     # Celery configuration
-    CELERY_BROKER_URL = 'redis://localhost:6379/0'
-    CELERY_BACKEND = 'redis://localhost:6379/0'
+    CELERY_BROKER_URL = _get_config_value("CELERY_BROKER_URL", "")
+    CELERY_BACKEND = _get_config_value("CELERY_BACKEND", "")
 
     SQLALCHEMY_DATABASE_URI = _get_config_value("SQLALCHEMY_DATABASE_URI", "")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
